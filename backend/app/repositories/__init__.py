@@ -4,6 +4,7 @@ from app.repositories.memberships import MembershipRepository
 from app.repositories.roles import RoleRepository
 from app.repositories.tenants import TenantRepository
 from app.repositories.users import UserRepository
+from app.repositories.sellers import SellerRepository, BranchRepository, StaffProfileRepository, SellerSettingsRepository
 
 __all__ = [
     'AuditRepository',
@@ -12,4 +13,8 @@ __all__ = [
     'RoleRepository',
     'TenantRepository',
     'UserRepository',
+    'SellerRepository',
+    'BranchRepository',
+    'StaffProfileRepository',
+    'SellerSettingsRepository',
 ]

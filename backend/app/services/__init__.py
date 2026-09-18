@@ -3,6 +3,7 @@ from app.services.memberships import MembershipService
 from app.services.roles import RoleService
 from app.services.tenants import TenantService
 from app.services.users import UserService
+from app.services.sellers import SellerService
 
 __all__ = [
     'AuditService',
@@ -10,4 +11,5 @@ __all__ = [
     'RoleService',
     'TenantService',
     'UserService',
+    'SellerService',
 ]

@@ -19,6 +19,10 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
     RoleName.TENANT_ADMIN.value: 'Tenant administrator managing members and settings',
     RoleName.TENANT_MEMBER.value: 'Standard tenant member with operational permissions',
     RoleName.TENANT_VIEWER.value: 'Read-only tenant viewer',
+    RoleName.SELLER_OWNER.value: 'Seller owner with complete control',
+    RoleName.SELLER_ADMIN.value: 'Seller administrator managing branches and staff',
+    RoleName.STAFF.value: 'Seller staff with operational permissions',
+    RoleName.VIEWER.value: 'Read-only seller viewer',
 }
 
 PERMISSION_DESCRIPTIONS: dict[str, str] = {
@@ -31,6 +35,14 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.USER_READ.value: 'View user profile information',
     PermissionName.USER_MANAGE.value: 'Manage user profiles and statuses',
     PermissionName.AUDIT_READ.value: 'View audit logs for authorized scope',
+    PermissionName.SELLER_READ.value: 'View seller details',
+    PermissionName.SELLER_MANAGE.value: 'Manage seller details and lifecycle',
+    PermissionName.SELLER_BRANCHES_READ.value: 'View seller branches',
+    PermissionName.SELLER_BRANCHES_MANAGE.value: 'Manage seller branches',
+    PermissionName.SELLER_STAFF_READ.value: 'View seller staff profiles',
+    PermissionName.SELLER_STAFF_MANAGE.value: 'Manage seller staff profiles',
+    PermissionName.SELLER_SETTINGS_READ.value: 'View seller settings',
+    PermissionName.SELLER_SETTINGS_MANAGE.value: 'Manage seller settings',
 }
 
 

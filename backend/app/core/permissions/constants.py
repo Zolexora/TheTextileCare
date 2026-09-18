@@ -10,6 +10,12 @@ class RoleName(str, Enum):
     TENANT_ADMIN = 'TENANT_ADMIN'
     TENANT_MEMBER = 'TENANT_MEMBER'
     TENANT_VIEWER = 'TENANT_VIEWER'
+    
+    # Phase 2 Seller Roles
+    SELLER_OWNER = 'SELLER_OWNER'
+    SELLER_ADMIN = 'SELLER_ADMIN'
+    STAFF = 'STAFF'
+    VIEWER = 'VIEWER'
 
 
 class PermissionName(str, Enum):
@@ -23,6 +29,16 @@ class PermissionName(str, Enum):
     USER_MANAGE = 'user.manage'
     AUDIT_READ = 'audit.read'
 
+    # Phase 2 Seller Permissions
+    SELLER_READ = 'seller.read'
+    SELLER_MANAGE = 'seller.manage'
+    SELLER_BRANCHES_READ = 'seller.branches.read'
+    SELLER_BRANCHES_MANAGE = 'seller.branches.manage'
+    SELLER_STAFF_READ = 'seller.staff.read'
+    SELLER_STAFF_MANAGE = 'seller.staff.manage'
+    SELLER_SETTINGS_READ = 'seller.settings.read'
+    SELLER_SETTINGS_MANAGE = 'seller.settings.manage'
+
 
 PLATFORM_ROLES = {
     RoleName.PLATFORM_ADMIN.value,
@@ -34,6 +50,10 @@ TENANT_ROLES = {
     RoleName.TENANT_ADMIN.value,
     RoleName.TENANT_MEMBER.value,
     RoleName.TENANT_VIEWER.value,
+    RoleName.SELLER_OWNER.value,
+    RoleName.SELLER_ADMIN.value,
+    RoleName.STAFF.value,
+    RoleName.VIEWER.value,
 }
 
 # Role to Permissions matrix following least privilege
@@ -48,6 +68,14 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.USER_READ.value,
         PermissionName.USER_MANAGE.value,
         PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_MANAGE.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_BRANCHES_MANAGE.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_STAFF_MANAGE.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.SELLER_SETTINGS_MANAGE.value,
     ],
     RoleName.PLATFORM_SUPPORT.value: [
         PermissionName.TENANT_READ.value,
@@ -55,6 +83,10 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.ROLE_READ.value,
         PermissionName.USER_READ.value,
         PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
     ],
     RoleName.TENANT_OWNER.value: [
         PermissionName.TENANT_READ.value,
@@ -64,6 +96,14 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.ROLE_READ.value,
         PermissionName.USER_READ.value,
         PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_MANAGE.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_BRANCHES_MANAGE.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_STAFF_MANAGE.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.SELLER_SETTINGS_MANAGE.value,
     ],
     RoleName.TENANT_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -73,6 +113,14 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.ROLE_READ.value,
         PermissionName.USER_READ.value,
         PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_MANAGE.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_BRANCHES_MANAGE.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_STAFF_MANAGE.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.SELLER_SETTINGS_MANAGE.value,
     ],
     RoleName.TENANT_MEMBER.value: [
         PermissionName.TENANT_READ.value,
@@ -81,5 +129,51 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
     ],
     RoleName.TENANT_VIEWER.value: [
         PermissionName.TENANT_READ.value,
+    ],
+    RoleName.SELLER_OWNER.value: [
+        PermissionName.TENANT_READ.value,
+        PermissionName.TENANT_MANAGE.value,
+        PermissionName.MEMBERSHIP_READ.value,
+        PermissionName.MEMBERSHIP_MANAGE.value,
+        PermissionName.ROLE_READ.value,
+        PermissionName.USER_READ.value,
+        PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_MANAGE.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_BRANCHES_MANAGE.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_STAFF_MANAGE.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.SELLER_SETTINGS_MANAGE.value,
+    ],
+    RoleName.SELLER_ADMIN.value: [
+        PermissionName.TENANT_READ.value,
+        PermissionName.MEMBERSHIP_READ.value,
+        PermissionName.MEMBERSHIP_MANAGE.value,
+        PermissionName.USER_READ.value,
+        PermissionName.AUDIT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_MANAGE.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_BRANCHES_MANAGE.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_STAFF_MANAGE.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.SELLER_SETTINGS_MANAGE.value,
+    ],
+    RoleName.STAFF.value: [
+        PermissionName.TENANT_READ.value,
+        PermissionName.MEMBERSHIP_READ.value,
+        PermissionName.USER_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.SELLER_STAFF_READ.value,
+        PermissionName.SELLER_SETTINGS_READ.value,
+    ],
+    RoleName.VIEWER.value: [
+        PermissionName.TENANT_READ.value,
+        PermissionName.SELLER_READ.value,
+        PermissionName.SELLER_BRANCHES_READ.value,
     ],
 }

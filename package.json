@@ -9,7 +9,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "clean": "turbo run clean && rimraf node_modules .turbo"
+    "clean": "turbo run clean && rimraf node_modules .turbo",
+    "generate:branding": "python3 scripts/generate_brand_assets.py && python3 scripts/build_logo_component.py"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",

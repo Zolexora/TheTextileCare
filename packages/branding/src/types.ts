@@ -7,8 +7,16 @@ export interface BrandTheme {
 
 export interface BrandAssets {
   logo?: string;
+  logoWhite?: string;
+  logoMark?: string;
+  symbol?: string;
   icon?: string;
   favicon?: string;
+  appleTouchIcon?: string;
+  svgLogo?: string;
+  svgIcon?: string;
+  svgSymbol?: string;
+  manifest?: string;
   banner?: string;
 }
 

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "declaration": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "paths": {
+      "@ttc/types": ["./packages/types/src/index.ts"],
+      "@ttc/config": ["./packages/config/src/index.ts"],
+      "@ttc/auth": ["./packages/auth/src/index.ts"],
+      "@ttc/tenant": ["./packages/tenant/src/index.ts"],
+      "@ttc/api-client": ["./packages/api-client/src/index.ts"],
+      "@ttc/branding": ["./packages/branding/src/index.ts"],
+      "@ttc/ui": ["./packages/ui/src/index.ts"]
+    }
+  }
+}

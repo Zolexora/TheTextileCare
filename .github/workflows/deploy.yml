@@ -1,0 +1,11 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Deployment steps are intentionally deferred and require environment-specific configuration.'

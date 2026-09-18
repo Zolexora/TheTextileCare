@@ -1,0 +1,19 @@
+# Default ownership for the monorepo
+* @TheTextileCare
+
+# Frontend applications
+/apps/admin-web/ @TheTextileCare
+/apps/marketplace-web/ @TheTextileCare
+/apps/seller-web/ @TheTextileCare
+/apps/driver-mobile/ @TheTextileCare
+/apps/marketplace-mobile/ @TheTextileCare
+/apps/seller-mobile/ @TheTextileCare
+
+# Shared platform packages
+/packages/* @TheTextileCare
+
+# Backend services
+/backend/ @TheTextileCare
+
+# CI and repo governance
+/.github/ @TheTextileCare

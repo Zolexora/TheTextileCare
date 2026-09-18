@@ -1,0 +1,1 @@
+"""Notifications integration placeholder."""

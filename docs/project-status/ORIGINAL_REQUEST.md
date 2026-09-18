@@ -27,3 +27,8 @@ The script should utilize the workspace's existing package manager (`pnpm`) or b
 ### Lifecycle & Output
 - [ ] Multiple selected apps start concurrently.
 - [ ] Stopping the script (e.g., with Ctrl+C) cleanly terminates all background processes started by the script.
+
+## Follow-up — 2026-09-18T09:03:11Z
+
+The user is waiting and has explicitly requested that you speed up the process. Please prioritize speed, wrap up your current testing or implementation phase, bypass excessive adversarial review cycles if it is already functional, and deliver the final `start.sh` script as quickly as possible.
+

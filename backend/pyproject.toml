@@ -36,3 +36,9 @@ pythonpath = ["."]
 [tool.ruff]
 line-length = 100
 src = ["app"]
+
+[tool.ruff.lint]
+ignore = ["B008"]
+
+[tool.ruff.format]
+quote-style = "single"

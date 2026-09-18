@@ -3,6 +3,9 @@ export interface TenantContext {
   slug: string;
   name: string;
   domain?: string;
+  role?: string;
+  permissions?: string[];
+  membershipId?: string;
 }
 
 export interface TenantResolver {

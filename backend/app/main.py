@@ -18,7 +18,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-allowed_origins = [origin.strip() for origin in settings.cors_allowed_origins.split(',') if origin.strip()]
+allowed_origins = [
+    origin.strip() for origin in settings.cors_allowed_origins.split(',') if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,6 +1,5 @@
-from sqlalchemy import text
-
 from app.dependencies import engine
+from sqlalchemy import text
 
 
 def test_database_engine_is_available() -> None:

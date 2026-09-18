@@ -76,3 +76,28 @@ __all__.extend([
     'ConfigurationValueUpdateRequest',
     'ResolvedConfigurationResponse',
 ])
+from .catalog import (
+    CatalogCreate,
+    CatalogResponse,
+    CatalogUpdate,
+    CategoryCreate,
+    CategoryResponse,
+    CategoryUpdate,
+    ServiceAddonCreate,
+    ServiceAddonResponse,
+    ServiceAddonUpdate,
+    ServiceCreate,
+    ServiceItemCreate,
+    ServiceItemResponse,
+    ServiceItemUpdate,
+    ServiceResponse,
+    ServiceUpdate,
+)
+
+__all__.extend([
+    'CatalogCreate', 'CatalogUpdate', 'CatalogResponse',
+    'CategoryCreate', 'CategoryUpdate', 'CategoryResponse',
+    'ServiceCreate', 'ServiceUpdate', 'ServiceResponse',
+    'ServiceItemCreate', 'ServiceItemUpdate', 'ServiceItemResponse',
+    'ServiceAddonCreate', 'ServiceAddonUpdate', 'ServiceAddonResponse'
+])

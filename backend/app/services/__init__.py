@@ -18,3 +18,8 @@ from app.services.configuration import ConfigurationResolverService
 __all__.extend([
     'ConfigurationResolverService',
 ])
+from .catalog import CatalogService
+
+__all__.extend([
+    'CatalogService'
+])

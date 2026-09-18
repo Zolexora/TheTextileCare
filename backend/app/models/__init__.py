@@ -29,3 +29,20 @@ __all__.extend([
     'ConfigurationDefinition',
     'ConfigurationValue',
 ])
+from app.models.catalog import (
+    Catalog,
+    Category,
+    Service,
+    ServiceItem,
+    ServiceAddon,
+    ServiceBranchAvailability,
+)
+
+__all__.extend([
+    'Catalog',
+    'Category',
+    'Service',
+    'ServiceItem',
+    'ServiceAddon',
+    'ServiceBranchAvailability',
+])

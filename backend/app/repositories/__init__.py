@@ -23,3 +23,18 @@ from app.repositories.configuration import ConfigurationRepository
 __all__.extend([
     'ConfigurationRepository',
 ])
+from .catalog import (
+    CatalogRepository,
+    CategoryRepository,
+    ServiceAddonRepository,
+    ServiceItemRepository,
+    ServiceRepository,
+)
+
+__all__.extend([
+    'CatalogRepository',
+    'CategoryRepository',
+    'ServiceRepository',
+    'ServiceItemRepository',
+    'ServiceAddonRepository',
+])

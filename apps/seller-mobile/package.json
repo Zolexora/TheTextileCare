@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ttc/api-client": "workspace:*",
+    "@ttc/branding": "workspace:^",
     "@ttc/config": "workspace:*",
     "expo": "~51.0.28",
     "expo-status-bar": "~1.2.0",

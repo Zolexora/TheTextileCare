@@ -25,3 +25,11 @@ export interface BrandConfiguration {
   theme: BrandTheme;
   assets: BrandAssets;
 }
+
+export interface FeatureConfig {
+  features: Record<string, boolean>;
+}
+
+export interface TenantConfiguration extends BrandConfiguration, FeatureConfig {
+  tenantId: string;
+}

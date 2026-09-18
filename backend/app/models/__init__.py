@@ -21,3 +21,11 @@ __all__ = [
     'SellerSettings',
     'BusinessHour',
 ]
+from app.models.configuration import Application, ApplicationModule, ConfigurationDefinition, ConfigurationValue
+
+__all__.extend([
+    'Application',
+    'ApplicationModule',
+    'ConfigurationDefinition',
+    'ConfigurationValue',
+])

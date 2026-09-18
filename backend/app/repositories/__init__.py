@@ -18,3 +18,8 @@ __all__ = [
     'StaffProfileRepository',
     'SellerSettingsRepository, BusinessHourRepository',
 ]
+from app.repositories.configuration import ConfigurationRepository
+
+__all__.extend([
+    'ConfigurationRepository',
+])

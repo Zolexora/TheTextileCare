@@ -180,6 +180,9 @@ importers:
       '@ttc/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@ttc/branding':
+        specifier: workspace:^
+        version: link:../../packages/branding
       '@ttc/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -205,6 +208,9 @@ importers:
 
   apps/seller-web:
     dependencies:
+      '@ttc/branding':
+        specifier: workspace:^
+        version: link:../../packages/branding
       '@ttc/config':
         specifier: workspace:*
         version: link:../../packages/config

@@ -51,3 +51,28 @@ __all__ = [
     'SellerSettingsUpdate',
     'SellerSettingsResponse, BusinessHourCreate, BusinessHourUpdate, BusinessHourResponse'
 ]
+from app.schemas.configuration import (
+    ApplicationCreate,
+    ApplicationResponse,
+    ApplicationModuleResponse,
+    ConfigurationDefinitionCreate,
+    ConfigurationDefinitionUpdate,
+    ConfigurationDefinitionResponse,
+    ConfigurationValueCreate,
+    ConfigurationValueResponse,
+    ConfigurationValueUpdateRequest,
+    ResolvedConfigurationResponse,
+)
+
+__all__.extend([
+    'ApplicationCreate',
+    'ApplicationResponse',
+    'ApplicationModuleResponse',
+    'ConfigurationDefinitionCreate',
+    'ConfigurationDefinitionUpdate',
+    'ConfigurationDefinitionResponse',
+    'ConfigurationValueCreate',
+    'ConfigurationValueResponse',
+    'ConfigurationValueUpdateRequest',
+    'ResolvedConfigurationResponse',
+])

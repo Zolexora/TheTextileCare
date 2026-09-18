@@ -39,6 +39,13 @@ class PermissionName(str, Enum):
     SELLER_SETTINGS_READ = 'seller.settings.read'
     SELLER_SETTINGS_MANAGE = 'seller.settings.manage'
 
+    # Phase 3 Configuration Permissions
+    CONFIGURATION_READ = 'configuration.read'
+    CONFIGURATION_MANAGE = 'configuration.manage'
+    CONFIGURATION_PUBLISH = 'configuration.publish'
+    CONFIGURATION_DEFINITIONS_READ = 'configuration.definitions.read'
+    CONFIGURATION_DEFINITIONS_MANAGE = 'configuration.definitions.manage'
+
 
 PLATFORM_ROLES = {
     RoleName.PLATFORM_ADMIN.value,
@@ -76,6 +83,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_STAFF_MANAGE.value,
         PermissionName.SELLER_SETTINGS_READ.value,
         PermissionName.SELLER_SETTINGS_MANAGE.value,
+
+        PermissionName.CONFIGURATION_READ.value,
+        PermissionName.CONFIGURATION_MANAGE.value,
+        PermissionName.CONFIGURATION_PUBLISH.value,
+        PermissionName.CONFIGURATION_DEFINITIONS_READ.value,
+        PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value,
     ],
     RoleName.PLATFORM_SUPPORT.value: [
         PermissionName.TENANT_READ.value,
@@ -104,6 +117,10 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_STAFF_MANAGE.value,
         PermissionName.SELLER_SETTINGS_READ.value,
         PermissionName.SELLER_SETTINGS_MANAGE.value,
+
+        PermissionName.CONFIGURATION_READ.value,
+        PermissionName.CONFIGURATION_MANAGE.value,
+        PermissionName.CONFIGURATION_PUBLISH.value,
     ],
     RoleName.TENANT_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -121,6 +138,10 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_STAFF_MANAGE.value,
         PermissionName.SELLER_SETTINGS_READ.value,
         PermissionName.SELLER_SETTINGS_MANAGE.value,
+
+        PermissionName.CONFIGURATION_READ.value,
+        PermissionName.CONFIGURATION_MANAGE.value,
+        PermissionName.CONFIGURATION_PUBLISH.value,
     ],
     RoleName.TENANT_MEMBER.value: [
         PermissionName.TENANT_READ.value,
@@ -146,6 +167,10 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_STAFF_MANAGE.value,
         PermissionName.SELLER_SETTINGS_READ.value,
         PermissionName.SELLER_SETTINGS_MANAGE.value,
+
+        PermissionName.CONFIGURATION_READ.value,
+        PermissionName.CONFIGURATION_MANAGE.value,
+        PermissionName.CONFIGURATION_PUBLISH.value,
     ],
     RoleName.SELLER_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -161,6 +186,10 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_STAFF_MANAGE.value,
         PermissionName.SELLER_SETTINGS_READ.value,
         PermissionName.SELLER_SETTINGS_MANAGE.value,
+
+        PermissionName.CONFIGURATION_READ.value,
+        PermissionName.CONFIGURATION_MANAGE.value,
+        PermissionName.CONFIGURATION_PUBLISH.value,
     ],
     RoleName.STAFF.value: [
         PermissionName.TENANT_READ.value,
@@ -170,10 +199,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.SELLER_BRANCHES_READ.value,
         PermissionName.SELLER_STAFF_READ.value,
         PermissionName.SELLER_SETTINGS_READ.value,
+        PermissionName.CONFIGURATION_READ.value,
     ],
     RoleName.VIEWER.value: [
         PermissionName.TENANT_READ.value,
         PermissionName.SELLER_READ.value,
         PermissionName.SELLER_BRANCHES_READ.value,
+        PermissionName.CONFIGURATION_READ.value,
     ],
 }

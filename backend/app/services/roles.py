@@ -42,7 +42,13 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.SELLER_STAFF_READ.value: 'View seller staff profiles',
     PermissionName.SELLER_STAFF_MANAGE.value: 'Manage seller staff profiles',
     PermissionName.SELLER_SETTINGS_READ.value: 'View seller settings',
+
     PermissionName.SELLER_SETTINGS_MANAGE.value: 'Manage seller settings',
+    PermissionName.CONFIGURATION_READ.value: 'View tenant and public configuration',
+    PermissionName.CONFIGURATION_MANAGE.value: 'Modify tenant configuration',
+    PermissionName.CONFIGURATION_PUBLISH.value: 'Publish tenant configuration',
+    PermissionName.CONFIGURATION_DEFINITIONS_READ.value: 'View platform configuration definitions',
+    PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value: 'Manage platform configuration definitions',
 }
 
 

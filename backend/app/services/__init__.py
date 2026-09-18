@@ -13,3 +13,8 @@ __all__ = [
     'UserService',
     'SellerService',
 ]
+from app.services.configuration import ConfigurationResolverService
+
+__all__.extend([
+    'ConfigurationResolverService',
+])

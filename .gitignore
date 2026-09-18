@@ -16,3 +16,10 @@ __pycache__/
 .mypy_cache/
 *.sqlite3
 *.db
+
+# Monorepo Caches
+.turbo/
+
+# Agent workspaces
+.agents/
+

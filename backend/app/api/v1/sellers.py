@@ -14,7 +14,8 @@ from app.schemas.seller import (
     SellerCreate, SellerUpdate, SellerResponse,
     BranchCreate, BranchUpdate, BranchResponse,
     StaffProfileCreate, StaffProfileUpdate, StaffProfileResponse,
-    SellerSettingsUpdate, SellerSettingsResponse
+    SellerSettingsUpdate, SellerSettingsResponse,
+    BusinessHourCreate, BusinessHourUpdate, BusinessHourResponse
 )
 from app.services.sellers import SellerService
 
@@ -30,8 +31,8 @@ async def create_seller(
     seller_service = SellerService(db)
     return seller_service.create_seller(
         tenant_id=ctx.tenant.id,
-        name=data.name,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -53,9 +54,8 @@ async def update_seller(
     seller_service = SellerService(db)
     return seller_service.update_seller(
         tenant_id=ctx.tenant.id,
-        name=data.name,
-        status=data.status,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -77,10 +77,8 @@ async def create_branch(
     seller_service = SellerService(db)
     return seller_service.create_branch(
         tenant_id=ctx.tenant.id,
-        name=data.name,
-        code=data.code,
-        timezone=data.timezone,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -95,10 +93,8 @@ async def update_branch(
     return seller_service.update_branch(
         tenant_id=ctx.tenant.id,
         branch_id=branch_id,
-        name=data.name,
-        status=data.status,
-        timezone=data.timezone,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -120,9 +116,8 @@ async def invite_staff(
     seller_service = SellerService(db)
     return seller_service.invite_staff(
         tenant_id=ctx.tenant.id,
-        user_id=data.user_id,
-        job_title=data.job_title,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -137,9 +132,8 @@ async def update_staff(
     return seller_service.update_staff(
         tenant_id=ctx.tenant.id,
         profile_id=profile_id,
-        job_title=data.job_title,
-        status=data.status,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )
 
 
@@ -153,7 +147,7 @@ async def remove_staff(
     seller_service.remove_staff(
         tenant_id=ctx.tenant.id,
         profile_id=profile_id,
-        actor_id=ctx.user.id
+        actor_user_id=ctx.user.id
     )
 
 
@@ -175,8 +169,30 @@ async def update_settings(
     seller_service = SellerService(db)
     return seller_service.update_settings(
         tenant_id=ctx.tenant.id,
-        currency=data.currency,
-        tax_rate=data.tax_rate,
-        business_hours=data.business_hours,
-        actor_id=ctx.user.id
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
+    )
+
+@router.get('/branches/{branch_id}/business-hours', response_model=list[BusinessHourResponse])
+async def get_business_hours(
+    branch_id: uuid.UUID,
+    ctx: TenantContext = Depends(require_permission(PermissionName.SELLER_SETTINGS_READ)),
+    db: Session = Depends(get_db),
+) -> Sequence[BusinessHourResponse]:
+    seller_service = SellerService(db)
+    return seller_service.get_business_hours(ctx.tenant.id, branch_id)
+
+@router.post('/branches/{branch_id}/business-hours', response_model=BusinessHourResponse)
+async def set_business_hour(
+    branch_id: uuid.UUID,
+    data: BusinessHourCreate,
+    ctx: TenantContext = Depends(require_permission(PermissionName.SELLER_SETTINGS_MANAGE)),
+    db: Session = Depends(get_db),
+) -> BusinessHourResponse:
+    seller_service = SellerService(db)
+    return seller_service.set_business_hour(
+        tenant_id=ctx.tenant.id,
+        branch_id=branch_id,
+        data=data.model_dump(exclude_unset=True),
+        actor_user_id=ctx.user.id
     )

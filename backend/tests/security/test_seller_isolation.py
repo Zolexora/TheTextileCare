@@ -28,7 +28,7 @@ def test_seller_isolation():
     # Create Seller A
     res_a = client.post(
         '/api/v1/sellers',
-        json={'name': 'Alpha Seller'},
+        json={'business_name': 'Alpha Seller', 'slug': 'alpha-seller'},
         headers=make_auth_headers(user_a, tenant_a)
     )
     assert res_a.status_code == 201
@@ -44,7 +44,7 @@ def test_seller_isolation():
     # Create Seller B
     res_b = client.post(
         '/api/v1/sellers',
-        json={'name': 'Beta Seller'},
+        json={'business_name': 'Beta Seller', 'slug': 'beta-seller'},
         headers=make_auth_headers(user_b, tenant_b)
     )
     assert res_b.status_code == 201
@@ -52,7 +52,7 @@ def test_seller_isolation():
     # Create Branch for Seller A
     res_branch_a = client.post(
         '/api/v1/sellers/branches',
-        json={'name': 'Alpha Branch 1', 'code': 'A1', 'timezone': 'UTC'},
+        json={'name': 'Alpha Branch 1', 'code': 'A1'},
         headers=make_auth_headers(user_a, tenant_a)
     )
     assert res_branch_a.status_code == 201
@@ -78,14 +78,14 @@ def test_seller_staff_isolation():
 
     client.post(
         '/api/v1/sellers',
-        json={'name': 'Alpha Seller'},
+        json={'business_name': 'Alpha Seller', 'slug': 'alpha-seller'},
         headers=make_auth_headers(user_a, tenant_a)
     )
 
     # Invite staff in tenant A
     res_staff = client.post(
         '/api/v1/sellers/staff',
-        json={'user_id': str(user_a2.id), 'job_title': 'Manager'},
+        json={'user_id': str(user_a2.id), 'display_name': 'Manager'},
         headers=make_auth_headers(user_a, tenant_a)
     )
     assert res_staff.status_code == 201
@@ -94,7 +94,7 @@ def test_seller_staff_isolation():
     user_b = create_test_user('userb@beta.com')
     res_staff_bad = client.post(
         '/api/v1/sellers/staff',
-        json={'user_id': str(user_b.id), 'job_title': 'Hacker'},
+        json={'user_id': str(user_b.id), 'display_name': 'Hacker'},
         headers=make_auth_headers(user_a, tenant_a)
     )
     # Should fail because user_b is not in tenant_a

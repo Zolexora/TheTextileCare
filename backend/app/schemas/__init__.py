@@ -19,7 +19,7 @@ from app.schemas.seller import (
     SellerCreate, SellerUpdate, SellerResponse,
     BranchCreate, BranchUpdate, BranchResponse,
     StaffProfileCreate, StaffProfileUpdate, StaffProfileResponse,
-    SellerSettingsUpdate, SellerSettingsResponse
+    SellerSettingsUpdate, SellerSettingsResponse, BusinessHourCreate, BusinessHourUpdate, BusinessHourResponse
 )
 
 __all__ = [
@@ -49,5 +49,5 @@ __all__ = [
     'StaffProfileUpdate',
     'StaffProfileResponse',
     'SellerSettingsUpdate',
-    'SellerSettingsResponse'
+    'SellerSettingsResponse, BusinessHourCreate, BusinessHourUpdate, BusinessHourResponse'
 ]

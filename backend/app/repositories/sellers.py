@@ -6,7 +6,7 @@ from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.seller import Seller, Branch, StaffProfile, SellerSettings
+from app.models.seller import Seller, Branch, StaffProfile, SellerSettings, BusinessHour
 from app.repositories.base import BaseRepository
 
 
@@ -32,6 +32,9 @@ class BranchRepository(BaseRepository):
     def get_by_id(self, branch_id: uuid.UUID) -> Branch | None:
         return self.db.execute(select(Branch).where(Branch.id == branch_id)).scalars().first()
 
+    def get_by_tenant_id(self, tenant_id: uuid.UUID) -> Sequence[Branch]:
+        return self.db.execute(select(Branch).where(Branch.tenant_id == tenant_id)).scalars().all()
+
     def get_by_seller_id(self, seller_id: uuid.UUID) -> Sequence[Branch]:
         return self.db.execute(select(Branch).where(Branch.seller_id == seller_id)).scalars().all()
 
@@ -55,13 +58,13 @@ class StaffProfileRepository(BaseRepository):
     def get_by_id(self, profile_id: uuid.UUID) -> StaffProfile | None:
         return self.db.execute(select(StaffProfile).where(StaffProfile.id == profile_id)).scalars().first()
 
-    def get_by_seller_and_user(self, seller_id: uuid.UUID, user_id: uuid.UUID) -> StaffProfile | None:
+    def get_by_tenant_and_user(self, tenant_id: uuid.UUID, user_id: uuid.UUID) -> StaffProfile | None:
         return self.db.execute(
-            select(StaffProfile).where(StaffProfile.seller_id == seller_id, StaffProfile.user_id == user_id)
+            select(StaffProfile).where(StaffProfile.tenant_id == tenant_id, StaffProfile.user_id == user_id)
         ).scalars().first()
 
-    def get_by_seller_id(self, seller_id: uuid.UUID) -> Sequence[StaffProfile]:
-        return self.db.execute(select(StaffProfile).where(StaffProfile.seller_id == seller_id)).scalars().all()
+    def get_by_tenant_id(self, tenant_id: uuid.UUID) -> Sequence[StaffProfile]:
+        return self.db.execute(select(StaffProfile).where(StaffProfile.tenant_id == tenant_id)).scalars().all()
 
     def create(self, profile: StaffProfile) -> StaffProfile:
         self.db.add(profile)
@@ -87,3 +90,26 @@ class SellerSettingsRepository(BaseRepository):
         self.db.add(settings)
         self.db.flush()
         return settings
+
+
+class BusinessHourRepository(BaseRepository):
+    def get_by_branch_id(self, branch_id: uuid.UUID) -> Sequence[BusinessHour]:
+        return self.db.execute(select(BusinessHour).where(BusinessHour.branch_id == branch_id)).scalars().all()
+
+    def get_by_branch_and_day(self, branch_id: uuid.UUID, day_of_week: int) -> BusinessHour | None:
+        return self.db.execute(
+            select(BusinessHour).where(BusinessHour.branch_id == branch_id, BusinessHour.day_of_week == day_of_week)
+        ).scalars().first()
+
+    def get_by_id(self, hour_id: uuid.UUID) -> BusinessHour | None:
+        return self.db.execute(select(BusinessHour).where(BusinessHour.id == hour_id)).scalars().first()
+
+    def create(self, business_hour: BusinessHour) -> BusinessHour:
+        self.db.add(business_hour)
+        self.db.flush()
+        return business_hour
+
+    def update(self, business_hour: BusinessHour) -> BusinessHour:
+        self.db.add(business_hour)
+        self.db.flush()
+        return business_hour

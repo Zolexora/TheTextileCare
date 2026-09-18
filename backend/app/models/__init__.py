@@ -5,7 +5,7 @@ from app.models.role import Role
 from app.models.role_permission import RolePermission
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.models.seller import Seller, Branch, StaffProfile, SellerSettings
+from app.models.seller import Seller, Branch, StaffProfile, SellerSettings, BusinessHour
 
 __all__ = [
     'AuditEvent',
@@ -19,4 +19,5 @@ __all__ = [
     'Branch',
     'StaffProfile',
     'SellerSettings',
+    'BusinessHour',
 ]

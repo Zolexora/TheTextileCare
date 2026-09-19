@@ -10,7 +10,7 @@ class RoleName(str, Enum):
     TENANT_ADMIN = 'TENANT_ADMIN'
     TENANT_MEMBER = 'TENANT_MEMBER'
     TENANT_VIEWER = 'TENANT_VIEWER'
-    
+
     # Phase 2 Seller Roles
     SELLER_OWNER = 'SELLER_OWNER'
     SELLER_ADMIN = 'SELLER_ADMIN'
@@ -58,6 +58,10 @@ class PermissionName(str, Enum):
     CONFIGURATION_PUBLISH = 'configuration.publish'
     CONFIGURATION_DEFINITIONS_READ = 'configuration.definitions.read'
     CONFIGURATION_DEFINITIONS_MANAGE = 'configuration.definitions.manage'
+
+    # Phase 5 Pricing Permissions
+    PRICING_READ = 'pricing.read'
+    PRICING_MANAGE = 'pricing.manage'
 
 
 PLATFORM_ROLES = {
@@ -114,6 +118,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_PUBLISH.value,
         PermissionName.CONFIGURATION_DEFINITIONS_READ.value,
         PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value,
+        PermissionName.PRICING_READ.value,
+        PermissionName.PRICING_MANAGE.value,
     ],
     RoleName.PLATFORM_SUPPORT.value: [
         PermissionName.TENANT_READ.value,
@@ -130,6 +136,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CATALOG_SERVICES_READ.value,
         PermissionName.CATALOG_ADDONS_READ.value,
         PermissionName.CATALOG_ITEMS_READ.value,
+        PermissionName.PRICING_READ.value,
     ],
     RoleName.TENANT_OWNER.value: [
         PermissionName.TENANT_READ.value,
@@ -163,6 +170,9 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_READ.value,
         PermissionName.CONFIGURATION_MANAGE.value,
         PermissionName.CONFIGURATION_PUBLISH.value,
+
+        PermissionName.PRICING_READ.value,
+        PermissionName.PRICING_MANAGE.value,
     ],
     RoleName.TENANT_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -197,17 +207,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_MANAGE.value,
         PermissionName.CONFIGURATION_PUBLISH.value,
 
-        PermissionName.CATALOG_READ.value,
-        PermissionName.CATALOG_MANAGE.value,
-        PermissionName.CATALOG_PUBLISH.value,
-        PermissionName.CATALOG_CATEGORIES_READ.value,
-        PermissionName.CATALOG_CATEGORIES_MANAGE.value,
-        PermissionName.CATALOG_SERVICES_READ.value,
-        PermissionName.CATALOG_SERVICES_MANAGE.value,
-        PermissionName.CATALOG_ADDONS_READ.value,
-        PermissionName.CATALOG_ADDONS_MANAGE.value,
-        PermissionName.CATALOG_ITEMS_READ.value,
-        PermissionName.CATALOG_ITEMS_MANAGE.value,
+        PermissionName.PRICING_READ.value,
+        PermissionName.PRICING_MANAGE.value,
     ],
     RoleName.TENANT_MEMBER.value: [
         PermissionName.TENANT_READ.value,
@@ -216,6 +217,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
     ],
     RoleName.TENANT_VIEWER.value: [
         PermissionName.TENANT_READ.value,
+        PermissionName.PRICING_READ.value,
     ],
     RoleName.SELLER_OWNER.value: [
         PermissionName.TENANT_READ.value,
@@ -250,17 +252,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_MANAGE.value,
         PermissionName.CONFIGURATION_PUBLISH.value,
 
-        PermissionName.CATALOG_READ.value,
-        PermissionName.CATALOG_MANAGE.value,
-        PermissionName.CATALOG_PUBLISH.value,
-        PermissionName.CATALOG_CATEGORIES_READ.value,
-        PermissionName.CATALOG_CATEGORIES_MANAGE.value,
-        PermissionName.CATALOG_SERVICES_READ.value,
-        PermissionName.CATALOG_SERVICES_MANAGE.value,
-        PermissionName.CATALOG_ADDONS_READ.value,
-        PermissionName.CATALOG_ADDONS_MANAGE.value,
-        PermissionName.CATALOG_ITEMS_READ.value,
-        PermissionName.CATALOG_ITEMS_MANAGE.value,
+        PermissionName.PRICING_READ.value,
+        PermissionName.PRICING_MANAGE.value,
     ],
     RoleName.SELLER_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -293,17 +286,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_MANAGE.value,
         PermissionName.CONFIGURATION_PUBLISH.value,
 
-        PermissionName.CATALOG_READ.value,
-        PermissionName.CATALOG_MANAGE.value,
-        PermissionName.CATALOG_PUBLISH.value,
-        PermissionName.CATALOG_CATEGORIES_READ.value,
-        PermissionName.CATALOG_CATEGORIES_MANAGE.value,
-        PermissionName.CATALOG_SERVICES_READ.value,
-        PermissionName.CATALOG_SERVICES_MANAGE.value,
-        PermissionName.CATALOG_ADDONS_READ.value,
-        PermissionName.CATALOG_ADDONS_MANAGE.value,
-        PermissionName.CATALOG_ITEMS_READ.value,
-        PermissionName.CATALOG_ITEMS_MANAGE.value,
+        PermissionName.PRICING_READ.value,
+        PermissionName.PRICING_MANAGE.value,
     ],
     RoleName.STAFF.value: [
         PermissionName.TENANT_READ.value,
@@ -319,6 +303,7 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CATALOG_SERVICES_READ.value,
         PermissionName.CATALOG_ADDONS_READ.value,
         PermissionName.CATALOG_ITEMS_READ.value,
+        PermissionName.PRICING_READ.value,
     ],
     RoleName.VIEWER.value: [
         PermissionName.TENANT_READ.value,
@@ -330,5 +315,6 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CATALOG_SERVICES_READ.value,
         PermissionName.CATALOG_ADDONS_READ.value,
         PermissionName.CATALOG_ITEMS_READ.value,
+        PermissionName.PRICING_READ.value,
     ],
 }

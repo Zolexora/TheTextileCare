@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
+import app.models  # noqa: F401
 from app.db import Base, SessionLocal, engine
 from app.models.membership import Membership
 from app.models.tenant import Tenant

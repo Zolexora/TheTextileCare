@@ -60,6 +60,8 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.CONFIGURATION_PUBLISH.value: 'Publish tenant configuration',
     PermissionName.CONFIGURATION_DEFINITIONS_READ.value: 'View platform configuration definitions',
     PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value: 'Manage platform configuration definitions',
+    PermissionName.PRICING_READ.value: 'View price books, rules, and calculate prices',
+    PermissionName.PRICING_MANAGE.value: 'Manage price books and pricing rules',
 }
 
 

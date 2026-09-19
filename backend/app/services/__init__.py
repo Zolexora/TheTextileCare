@@ -19,7 +19,9 @@ __all__.extend([
     'ConfigurationResolverService',
 ])
 from .catalog import CatalogService
+from .pricing import PricingService
 
 __all__.extend([
-    'CatalogService'
+    'CatalogService',
+    'PricingService',
 ])

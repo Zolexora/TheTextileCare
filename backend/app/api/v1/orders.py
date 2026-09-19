@@ -266,6 +266,26 @@ def complete_seller_order(
     return OrderResponse.model_validate(order)
 
 
+@seller_router.post("/{order_id}/reject", response_model=OrderResponse)
+def reject_seller_order(
+    order_id: uuid.UUID,
+    body: OrderCancelRequest,
+    context: TenantContext = Depends(require_permission(PermissionName.ORDER_CANCEL.value)),
+    db: Session = Depends(get_db),
+) -> OrderResponse:
+    """Seller rejects a PENDING order → CANCELLED."""
+    seller = _get_seller(context, db)
+    svc = OrderService(db)
+    order = svc.reject_order(
+        order_id=order_id,
+        seller_id=seller.id,
+        tenant_id=context.tenant_id,
+        actor_user_id=context.user_id,
+        reason=body.cancellation_reason,
+    )
+    return OrderResponse.model_validate(order)
+
+
 @seller_router.post("/{order_id}/cancel", response_model=OrderResponse)
 def cancel_seller_order(
     order_id: uuid.UUID,
@@ -273,7 +293,7 @@ def cancel_seller_order(
     context: TenantContext = Depends(require_permission(PermissionName.ORDER_CANCEL.value)),
     db: Session = Depends(get_db),
 ) -> OrderResponse:
-    """Seller cancels a PENDING or CONFIRMED order → CANCELLED."""
+    """Seller cancels a CONFIRMED order → CANCELLED."""
     seller = _get_seller(context, db)
     svc = OrderService(db)
     order = svc.cancel_order_as_seller(

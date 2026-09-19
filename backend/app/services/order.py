@@ -392,6 +392,24 @@ class OrderService:
         order = self.get_seller_order(order_id, seller_id, tenant_id)
         return self._transition(order, OrderStatus.COMPLETED, actor_user_id, reason)
 
+    def reject_order(
+        self,
+        order_id: uuid.UUID,
+        seller_id: uuid.UUID,
+        tenant_id: uuid.UUID,
+        actor_user_id: uuid.UUID,
+        reason: str,
+    ) -> Order:
+        order = self.get_seller_order(order_id, seller_id, tenant_id)
+        current = OrderStatus(order.status)
+        if current != OrderStatus.PENDING:
+            raise ApiError(
+                status_code=409,
+                code="INVALID_ORDER_STATUS_TRANSITION",
+                message=f"Order in status '{order.status}' cannot be rejected. Only PENDING orders can be rejected.",
+            )
+        return self._transition(order, OrderStatus.CANCELLED, actor_user_id, reason)
+
     def cancel_order_as_seller(
         self,
         order_id: uuid.UUID,

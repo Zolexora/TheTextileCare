@@ -72,7 +72,6 @@ CUSTOMER_CANCELLABLE_STATUSES: set[OrderStatus] = {
 
 # Statuses that a seller is allowed to cancel from.
 SELLER_CANCELLABLE_STATUSES: set[OrderStatus] = {
-    OrderStatus.PENDING,
     OrderStatus.CONFIRMED,
 }
 

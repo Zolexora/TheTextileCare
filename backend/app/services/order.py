@@ -307,11 +307,12 @@ class OrderService:
                 message=f"Order in status '{order.status}' cannot be cancelled by the customer.",
             )
 
+        formatted_reason = f"CUSTOMER_CANCELLED: {reason}"
         return self._transition(
             order=order,
             target=OrderStatus.CANCELLED,
             actor_user_id=user_id,
-            reason=reason,
+            reason=formatted_reason,
         )
 
     # ===================================================================
@@ -408,7 +409,8 @@ class OrderService:
                 code="INVALID_ORDER_STATUS_TRANSITION",
                 message=f"Order in status '{order.status}' cannot be rejected. Only PENDING orders can be rejected.",
             )
-        return self._transition(order, OrderStatus.CANCELLED, actor_user_id, reason)
+        formatted_reason = f"SELLER_REJECTED: {reason}"
+        return self._transition(order, OrderStatus.CANCELLED, actor_user_id, formatted_reason)
 
     def cancel_order_as_seller(
         self,
@@ -426,7 +428,8 @@ class OrderService:
                 code="INVALID_ORDER_STATUS_TRANSITION",
                 message=f"Order in status '{order.status}' cannot be cancelled by the seller.",
             )
-        return self._transition(order, OrderStatus.CANCELLED, actor_user_id, reason)
+        formatted_reason = f"SELLER_CANCELLED: {reason}"
+        return self._transition(order, OrderStatus.CANCELLED, actor_user_id, formatted_reason)
 
     # ===================================================================
     # Domain transition engine

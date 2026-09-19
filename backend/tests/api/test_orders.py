@@ -686,7 +686,7 @@ class TestCancellation:
         )
         assert cancel_resp.status_code == 200
         assert cancel_resp.json()["status"] == "CANCELLED"
-        assert cancel_resp.json()["cancellation_reason"] == "Changed my mind"
+        assert cancel_resp.json()["cancellation_reason"] == "CUSTOMER_CANCELLED: Changed my mind"
 
     def test_customer_cannot_cancel_in_progress_order(self):
         tenant = _create_tenant(f"Can2-{uuid.uuid4().hex[:4]}")

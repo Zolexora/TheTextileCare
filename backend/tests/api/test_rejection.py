@@ -26,7 +26,7 @@ class TestSellerRejection:
         )
         assert resp.status_code == 200
         assert resp.json()["status"] == "CANCELLED"
-        assert resp.json()["cancellation_reason"] == "Out of service area"
+        assert resp.json()["cancellation_reason"] == "SELLER_REJECTED: Out of service area"
 
     def test_seller_cannot_reject_confirmed_order(self):
         tenant = _create_tenant(f"Rej2-{uuid.uuid4().hex[:4]}")

@@ -63,6 +63,13 @@ class PermissionName(str, Enum):
     PRICING_READ = 'pricing.read'
     PRICING_MANAGE = 'pricing.manage'
 
+    # Phase 7 Order Permissions
+    ORDER_READ = 'order.read'
+    ORDER_MANAGE = 'order.manage'
+    ORDER_CONFIRM = 'order.confirm'
+    ORDER_PROCESS = 'order.process'
+    ORDER_CANCEL = 'order.cancel'
+
 
 PLATFORM_ROLES = {
     RoleName.PLATFORM_ADMIN.value,
@@ -120,6 +127,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value,
         PermissionName.PRICING_READ.value,
         PermissionName.PRICING_MANAGE.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_MANAGE.value,
+        PermissionName.ORDER_CONFIRM.value,
+        PermissionName.ORDER_PROCESS.value,
+        PermissionName.ORDER_CANCEL.value,
     ],
     RoleName.PLATFORM_SUPPORT.value: [
         PermissionName.TENANT_READ.value,
@@ -173,6 +185,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
 
         PermissionName.PRICING_READ.value,
         PermissionName.PRICING_MANAGE.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_MANAGE.value,
+        PermissionName.ORDER_CONFIRM.value,
+        PermissionName.ORDER_PROCESS.value,
+        PermissionName.ORDER_CANCEL.value,
     ],
     RoleName.TENANT_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -209,6 +226,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
 
         PermissionName.PRICING_READ.value,
         PermissionName.PRICING_MANAGE.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_MANAGE.value,
+        PermissionName.ORDER_CONFIRM.value,
+        PermissionName.ORDER_PROCESS.value,
+        PermissionName.ORDER_CANCEL.value,
     ],
     RoleName.TENANT_MEMBER.value: [
         PermissionName.TENANT_READ.value,
@@ -254,6 +276,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
 
         PermissionName.PRICING_READ.value,
         PermissionName.PRICING_MANAGE.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_MANAGE.value,
+        PermissionName.ORDER_CONFIRM.value,
+        PermissionName.ORDER_PROCESS.value,
+        PermissionName.ORDER_CANCEL.value,
     ],
     RoleName.SELLER_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -288,6 +315,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
 
         PermissionName.PRICING_READ.value,
         PermissionName.PRICING_MANAGE.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_MANAGE.value,
+        PermissionName.ORDER_CONFIRM.value,
+        PermissionName.ORDER_PROCESS.value,
+        PermissionName.ORDER_CANCEL.value,
     ],
     RoleName.STAFF.value: [
         PermissionName.TENANT_READ.value,
@@ -304,6 +336,8 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CATALOG_ADDONS_READ.value,
         PermissionName.CATALOG_ITEMS_READ.value,
         PermissionName.PRICING_READ.value,
+        PermissionName.ORDER_READ.value,
+        PermissionName.ORDER_PROCESS.value,
     ],
     RoleName.VIEWER.value: [
         PermissionName.TENANT_READ.value,
@@ -316,5 +350,6 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.CATALOG_ADDONS_READ.value,
         PermissionName.CATALOG_ITEMS_READ.value,
         PermissionName.PRICING_READ.value,
+        PermissionName.ORDER_READ.value,
     ],
 }

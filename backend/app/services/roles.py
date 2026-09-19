@@ -62,6 +62,11 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.CONFIGURATION_DEFINITIONS_MANAGE.value: 'Manage platform configuration definitions',
     PermissionName.PRICING_READ.value: 'View price books, rules, and calculate prices',
     PermissionName.PRICING_MANAGE.value: 'Manage price books and pricing rules',
+    PermissionName.ORDER_READ.value: 'View orders',
+    PermissionName.ORDER_MANAGE.value: 'Manage order configurations',
+    PermissionName.ORDER_CONFIRM.value: 'Confirm pending orders',
+    PermissionName.ORDER_PROCESS.value: 'Process and complete orders',
+    PermissionName.ORDER_CANCEL.value: 'Cancel orders',
 }
 
 

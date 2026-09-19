@@ -30,6 +30,17 @@ from app.models.seller import Branch, BusinessHour, Seller, SellerSettings, Staf
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.models.customer import Customer, CustomerAddress, CustomerSeller
+from app.models.order import (
+    ALLOWED_TRANSITIONS,
+    CUSTOMER_CANCELLABLE_STATUSES,
+    Order,
+    OrderItem,
+    OrderItemAddon,
+    OrderStatus,
+    OrderStatusHistory,
+    SELLER_CANCELLABLE_STATUSES,
+    order_number_seq,
+)
 
 __all__ = [
     'AuditEvent',
@@ -64,4 +75,13 @@ __all__ = [
     'Customer',
     'CustomerAddress',
     'CustomerSeller',
+    'Order',
+    'OrderItem',
+    'OrderItemAddon',
+    'OrderStatus',
+    'OrderStatusHistory',
+    'ALLOWED_TRANSITIONS',
+    'CUSTOMER_CANCELLABLE_STATUSES',
+    'SELLER_CANCELLABLE_STATUSES',
+    'order_number_seq',
 ]

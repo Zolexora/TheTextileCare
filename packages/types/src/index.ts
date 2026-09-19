@@ -5,3 +5,4 @@ export * from './catalog';
 export * from './pricing';
 export * from './customer';
 export * from './marketplace';
+export * from './order';

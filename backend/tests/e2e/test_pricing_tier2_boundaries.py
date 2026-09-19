@@ -34,11 +34,11 @@ from tests.e2e.conftest import (
 
 
 def _activate_book(client: TestClient, book_id: str, headers: dict[str, str]) -> None:
-    res = client.post(f"/api/v1/pricing/books/{book_id}/activate", headers=headers)
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/activate", headers=headers)
     if res.status_code != 200:
-        res_patch = client.patch(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+        res_patch = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
         if res_patch.status_code != 200:
-            client.put(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+            client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
 
 
 # ============================================================================
@@ -48,7 +48,7 @@ def _activate_book(client: TestClient, book_id: str, headers: dict[str, str]) ->
 def test_boundary_zero_rate_service(client: TestClient):
     """B-01.1: Verify a zero rate ($0.00) free service calculates correctly with subtotal $0.00."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Zero Rate Book",
         "currency": "USD",
@@ -56,7 +56,7 @@ def test_boundary_zero_rate_service(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -85,7 +85,7 @@ def test_boundary_zero_rate_service(client: TestClient):
 def test_boundary_high_monetary_amount(client: TestClient):
     """B-01.2: Verify calculation handles large monetary amounts ($1,000,000.00) without numeric overflow."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "High Amount Book",
         "currency": "USD",
@@ -93,7 +93,7 @@ def test_boundary_high_monetary_amount(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -122,14 +122,14 @@ def test_boundary_high_monetary_amount(client: TestClient):
 def test_boundary_negative_rate_rejected(client: TestClient):
     """B-01.3: Verify creating a price rule with negative rate is rejected (422 or 400)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Negative Rate Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -158,7 +158,7 @@ def test_boundary_zero_quantity_rejected(client: TestClient):
 def test_boundary_high_precision_rate(client: TestClient):
     """B-01.5: Verify 4-decimal precision rate ($0.1234) is preserved in rate and calculation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Precision Book",
         "currency": "USD",
@@ -166,7 +166,7 @@ def test_boundary_high_precision_rate(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -202,7 +202,7 @@ def test_boundary_high_precision_rate(client: TestClient):
 def test_boundary_rounding_half_up_exactness(client: TestClient):
     """B-02.1: Verify half-up rounding behaves strictly as ROUND_HALF_UP (e.g. 10.125 -> 10.13)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Rounding Book",
         "currency": "USD",
@@ -211,7 +211,7 @@ def test_boundary_rounding_half_up_exactness(client: TestClient):
     book_id = book_res.json()["id"]
 
     # 3 items @ $3.375 each = $10.125
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -240,7 +240,7 @@ def test_boundary_rounding_half_up_exactness(client: TestClient):
 def test_boundary_fractional_tax_rounding(client: TestClient):
     """B-02.2: Verify tax rate percentage rounding (8.875% on $15.50 = 1.375625 -> 1.38)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Tax Rounding Book",
         "currency": "USD",
@@ -248,14 +248,14 @@ def test_boundary_fractional_tax_rounding(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
         "component_type": "BASE_PRICE",
         "rate": "15.50",
     })
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -285,7 +285,7 @@ def test_boundary_fractional_tax_rounding(client: TestClient):
 def test_boundary_discount_clamped_to_subtotal(client: TestClient):
     """B-02.3: Verify discount exceeding subtotal is clamped to subtotal (never yields negative total)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Clamped Discount Book",
         "currency": "USD",
@@ -294,7 +294,7 @@ def test_boundary_discount_clamped_to_subtotal(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Base price: $20.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -302,7 +302,7 @@ def test_boundary_discount_clamped_to_subtotal(client: TestClient):
         "rate": "20.00",
     })
     # Discount: $50.00 flat (exceeds $20.00 base)
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
@@ -332,7 +332,7 @@ def test_boundary_discount_clamped_to_subtotal(client: TestClient):
 def test_boundary_multiple_lines_rounding_consistency(client: TestClient):
     """B-02.4: Verify rounding across multiple line items aggregates consistently with grand total."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Multi Line Rounding Book",
         "currency": "USD",
@@ -341,7 +341,7 @@ def test_boundary_multiple_lines_rounding_consistency(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Rule 1: $1.115
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -349,7 +349,7 @@ def test_boundary_multiple_lines_rounding_consistency(client: TestClient):
         "rate": "1.115",
     })
     # Rule 2: $2.225
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -381,7 +381,7 @@ def test_boundary_multiple_lines_rounding_consistency(client: TestClient):
 def test_boundary_percentage_surcharge_rounding(client: TestClient):
     """B-02.5: Verify 15% surcharge on $12.35 (= 1.8525 -> 1.85) rounds properly."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Pct Surcharge Rounding Book",
         "currency": "USD",
@@ -389,14 +389,14 @@ def test_boundary_percentage_surcharge_rounding(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
         "component_type": "BASE_PRICE",
         "rate": "12.35",
     })
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
@@ -430,7 +430,7 @@ def test_boundary_percentage_surcharge_rounding(client: TestClient):
 def test_boundary_expired_rule_excluded(client: TestClient):
     """B-03.1: Verify a rule with effective_to in the past is excluded from calculation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Expired Rule Book",
         "currency": "USD",
@@ -439,7 +439,7 @@ def test_boundary_expired_rule_excluded(client: TestClient):
     book_id = book_res.json()["id"]
 
     past_date = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -469,7 +469,7 @@ def test_boundary_expired_rule_excluded(client: TestClient):
 def test_boundary_future_rule_excluded(client: TestClient):
     """B-03.2: Verify a rule with effective_from in the future is excluded from current calculation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Future Rule Book",
         "currency": "USD",
@@ -478,7 +478,7 @@ def test_boundary_future_rule_excluded(client: TestClient):
     book_id = book_res.json()["id"]
 
     future_date = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -507,7 +507,7 @@ def test_boundary_future_rule_excluded(client: TestClient):
 def test_boundary_currently_effective_rule_included(client: TestClient):
     """B-03.3: Verify rule currently within effective window is included."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Active Window Book",
         "currency": "USD",
@@ -519,7 +519,7 @@ def test_boundary_currently_effective_rule_included(client: TestClient):
     start_date = (now - timedelta(days=2)).isoformat()
     end_date = (now + timedelta(days=2)).isoformat()
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -548,7 +548,7 @@ def test_boundary_currently_effective_rule_included(client: TestClient):
 def test_boundary_open_ended_date_range(client: TestClient):
     """B-03.4: Verify rule with effective_from set but effective_to=None remains active indefinitely."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Open Ended Book",
         "currency": "USD",
@@ -557,7 +557,7 @@ def test_boundary_open_ended_date_range(client: TestClient):
     book_id = book_res.json()["id"]
 
     start_date = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -585,7 +585,7 @@ def test_boundary_open_ended_date_range(client: TestClient):
 def test_boundary_specific_calculation_date_evaluation(client: TestClient):
     """B-03.5: Verify calculation_date in request payload evaluates against rule dates accurately."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Date Target Book",
         "currency": "USD",
@@ -593,7 +593,7 @@ def test_boundary_specific_calculation_date_evaluation(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -642,7 +642,7 @@ def test_boundary_specific_calculation_date_evaluation(client: TestClient):
 def test_boundary_draft_book_excluded_from_calculation(client: TestClient):
     """B-04.1: Verify price book in DRAFT status is not utilized during calculation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Draft Only Book",
         "currency": "USD",
@@ -650,7 +650,7 @@ def test_boundary_draft_book_excluded_from_calculation(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -678,7 +678,7 @@ def test_boundary_draft_book_excluded_from_calculation(client: TestClient):
 def test_boundary_inactive_book_excluded_from_calculation(client: TestClient):
     """B-04.2: Verify price book in INACTIVE status is not used during calculation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Inactive Book",
         "currency": "USD",
@@ -686,7 +686,7 @@ def test_boundary_inactive_book_excluded_from_calculation(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -696,9 +696,9 @@ def test_boundary_inactive_book_excluded_from_calculation(client: TestClient):
     _activate_book(client, book_id, env["headers"])
 
     # Deactivate
-    deact_res = client.post(f"/api/v1/pricing/books/{book_id}/deactivate", headers=env["headers"])
+    deact_res = client.post(f"/api/v1/pricing/price-books/{book_id}/deactivate", headers=env["headers"])
     if deact_res.status_code != 200:
-        client.patch(f"/api/v1/pricing/books/{book_id}", headers=env["headers"], json={"status": "INACTIVE"})
+        client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"], json={"status": "INACTIVE"})
 
     calc_res = client.post("/api/v1/pricing/calculate", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
@@ -717,7 +717,7 @@ def test_boundary_inactive_book_excluded_from_calculation(client: TestClient):
 def test_boundary_inactive_rule_within_active_book_excluded(client: TestClient):
     """B-04.3: Verify rule with status INACTIVE is ignored even inside an active book."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Active Book With Inactive Rule",
         "currency": "USD",
@@ -725,7 +725,7 @@ def test_boundary_inactive_rule_within_active_book_excluded(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -735,7 +735,7 @@ def test_boundary_inactive_rule_within_active_book_excluded(client: TestClient):
     rule_id = rule_res.json()["id"]
 
     # Mark rule INACTIVE
-    client.put(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json={"status": "INACTIVE"})
+    client.patch(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json={"status": "INACTIVE"})
     _activate_book(client, book_id, env["headers"])
 
     calc_res = client.post("/api/v1/pricing/calculate", headers=env["headers"], json={
@@ -755,7 +755,7 @@ def test_boundary_inactive_rule_within_active_book_excluded(client: TestClient):
 def test_boundary_transition_draft_to_active_enables_calculation(client: TestClient):
     """B-04.4: Verify activating a DRAFT book transitions it to active and immediately enables pricing."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Activation Flow Book",
         "currency": "USD",
@@ -763,7 +763,7 @@ def test_boundary_transition_draft_to_active_enables_calculation(client: TestCli
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -792,20 +792,20 @@ def test_boundary_status_filter_in_list_api(client: TestClient):
     """B-04.5: Verify listing books filtered by status returns only books matching requested status."""
     env = setup_tenant_and_actor()
     # Book 1: Draft
-    client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Draft Book Filter Test",
         "currency": "USD",
     })
     # Book 2: Active
-    res2 = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    res2 = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Active Book Filter Test",
         "currency": "USD",
     })
     _activate_book(client, res2.json()["id"], env["headers"])
 
-    list_active = client.get("/api/v1/pricing/books?status=ACTIVE", headers=env["headers"])
+    list_active = client.get("/api/v1/pricing/price-books?status=ACTIVE", headers=env["headers"])
     assert list_active.status_code == 200
     for book in list_active.json():
         assert book["status"] == "ACTIVE"
@@ -820,7 +820,7 @@ def test_boundary_cross_tenant_book_read_denied(client: TestClient):
     env_a = setup_tenant_and_actor(tenant_name="Tenant A", user_email="admin_a@tenant-a.com")
     env_b = setup_tenant_and_actor(tenant_name="Tenant B", user_email="admin_b@tenant-b.com")
 
-    book_res = client.post("/api/v1/pricing/books", headers=env_a["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env_a["headers"], json={
         "seller_id": str(env_a["seller"].id),
         "name": "Tenant A Secret Book",
         "currency": "USD",
@@ -828,7 +828,7 @@ def test_boundary_cross_tenant_book_read_denied(client: TestClient):
     book_a_id = book_res.json()["id"]
 
     # Tenant B tries to read Tenant A book
-    read_res = client.get(f"/api/v1/pricing/books/{book_a_id}", headers=env_b["headers"])
+    read_res = client.get(f"/api/v1/pricing/price-books/{book_a_id}", headers=env_b["headers"])
     assert read_res.status_code == 404
 
 
@@ -837,7 +837,7 @@ def test_boundary_cross_tenant_book_update_denied(client: TestClient):
     env_a = setup_tenant_and_actor(tenant_name="Tenant A", user_email="admin_a@tenant-a.com")
     env_b = setup_tenant_and_actor(tenant_name="Tenant B", user_email="admin_b@tenant-b.com")
 
-    book_res = client.post("/api/v1/pricing/books", headers=env_a["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env_a["headers"], json={
         "seller_id": str(env_a["seller"].id),
         "name": "Tenant A Original Book",
         "currency": "USD",
@@ -845,9 +845,9 @@ def test_boundary_cross_tenant_book_update_denied(client: TestClient):
     book_a_id = book_res.json()["id"]
 
     # Tenant B tries to modify Tenant A book
-    patch_res = client.patch(f"/api/v1/pricing/books/{book_a_id}", headers=env_b["headers"], json={"name": "Hacked"})
+    patch_res = client.patch(f"/api/v1/pricing/price-books/{book_a_id}", headers=env_b["headers"], json={"name": "Hacked"})
     if patch_res.status_code == 405:
-        patch_res = client.put(f"/api/v1/pricing/books/{book_a_id}", headers=env_b["headers"], json={"name": "Hacked"})
+        patch_res = client.patch(f"/api/v1/pricing/price-books/{book_a_id}", headers=env_b["headers"], json={"name": "Hacked"})
     assert patch_res.status_code == 404
 
 
@@ -856,14 +856,14 @@ def test_boundary_cross_tenant_book_delete_denied(client: TestClient):
     env_a = setup_tenant_and_actor(tenant_name="Tenant A", user_email="admin_a@tenant-a.com")
     env_b = setup_tenant_and_actor(tenant_name="Tenant B", user_email="admin_b@tenant-b.com")
 
-    book_res = client.post("/api/v1/pricing/books", headers=env_a["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env_a["headers"], json={
         "seller_id": str(env_a["seller"].id),
         "name": "Tenant A Protected Book",
         "currency": "USD",
     })
     book_a_id = book_res.json()["id"]
 
-    del_res = client.delete(f"/api/v1/pricing/books/{book_a_id}", headers=env_b["headers"])
+    del_res = client.delete(f"/api/v1/pricing/price-books/{book_a_id}", headers=env_b["headers"])
     assert del_res.status_code == 404
 
 
@@ -873,7 +873,7 @@ def test_boundary_id_injection_foreign_seller(client: TestClient):
     env_b = setup_tenant_and_actor(tenant_name="Tenant B", user_email="admin_b@tenant-b.com")
 
     # Tenant A attempts to create book pointing to Tenant B's seller
-    inject_res = client.post("/api/v1/pricing/books", headers=env_a["headers"], json={
+    inject_res = client.post("/api/v1/pricing/price-books", headers=env_a["headers"], json={
         "seller_id": str(env_b["seller"].id),
         "name": "Injected Seller Book",
         "currency": "USD",
@@ -886,7 +886,7 @@ def test_boundary_id_injection_foreign_branch(client: TestClient):
     env_a = setup_tenant_and_actor(tenant_name="Tenant A", user_email="admin_a@tenant-a.com")
     env_b = setup_tenant_and_actor(tenant_name="Tenant B", user_email="admin_b@tenant-b.com")
 
-    inject_res = client.post("/api/v1/pricing/books", headers=env_a["headers"], json={
+    inject_res = client.post("/api/v1/pricing/price-books", headers=env_a["headers"], json={
         "seller_id": str(env_a["seller"].id),
         "branch_id": str(env_b["downtown_branch"].id),
         "name": "Injected Branch Book",
@@ -906,7 +906,7 @@ def test_boundary_privilege_viewer_cannot_create_book(client: TestClient):
     create_test_membership(env["tenant"].id, viewer.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer, env["tenant"])
 
-    res = client.post("/api/v1/pricing/books", headers=viewer_headers, json={
+    res = client.post("/api/v1/pricing/price-books", headers=viewer_headers, json={
         "seller_id": str(env["seller"].id),
         "name": "Viewer Illegal Book",
         "currency": "USD",
@@ -917,7 +917,7 @@ def test_boundary_privilege_viewer_cannot_create_book(client: TestClient):
 def test_boundary_privilege_viewer_cannot_update_book(client: TestClient):
     """B-06.2: Verify VIEWER cannot update price book (403 Forbidden)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Admin Book",
         "currency": "USD",
@@ -928,16 +928,16 @@ def test_boundary_privilege_viewer_cannot_update_book(client: TestClient):
     create_test_membership(env["tenant"].id, viewer.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer, env["tenant"])
 
-    res = client.patch(f"/api/v1/pricing/books/{book_id}", headers=viewer_headers, json={"name": "Hacked"})
+    res = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=viewer_headers, json={"name": "Hacked"})
     if res.status_code == 405:
-        res = client.put(f"/api/v1/pricing/books/{book_id}", headers=viewer_headers, json={"name": "Hacked"})
+        res = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=viewer_headers, json={"name": "Hacked"})
     assert res.status_code == 403
 
 
 def test_boundary_privilege_viewer_cannot_delete_book(client: TestClient):
     """B-06.3: Verify VIEWER cannot delete price book (403 Forbidden)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Admin Book to Delete",
         "currency": "USD",
@@ -948,14 +948,14 @@ def test_boundary_privilege_viewer_cannot_delete_book(client: TestClient):
     create_test_membership(env["tenant"].id, viewer.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer, env["tenant"])
 
-    res = client.delete(f"/api/v1/pricing/books/{book_id}", headers=viewer_headers)
+    res = client.delete(f"/api/v1/pricing/price-books/{book_id}", headers=viewer_headers)
     assert res.status_code == 403
 
 
 def test_boundary_privilege_viewer_cannot_create_rule(client: TestClient):
     """B-06.4: Verify VIEWER cannot create price rules (403 Forbidden)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Admin Book Rules",
         "currency": "USD",
@@ -966,7 +966,7 @@ def test_boundary_privilege_viewer_cannot_create_rule(client: TestClient):
     create_test_membership(env["tenant"].id, viewer.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer, env["tenant"])
 
-    res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=viewer_headers, json={
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=viewer_headers, json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -978,7 +978,7 @@ def test_boundary_privilege_viewer_cannot_create_rule(client: TestClient):
 def test_boundary_privilege_staff_cannot_delete_book(client: TestClient):
     """B-06.5: Verify STAFF cannot delete price books (403 Forbidden)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Staff Protected Book",
         "currency": "USD",
@@ -989,5 +989,5 @@ def test_boundary_privilege_staff_cannot_delete_book(client: TestClient):
     create_test_membership(env["tenant"].id, staff.id, "STAFF")
     staff_headers = make_auth_headers(staff, env["tenant"])
 
-    res = client.delete(f"/api/v1/pricing/books/{book_id}", headers=staff_headers)
+    res = client.delete(f"/api/v1/pricing/price-books/{book_id}", headers=staff_headers)
     assert res.status_code == 403

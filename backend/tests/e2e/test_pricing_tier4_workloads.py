@@ -27,11 +27,11 @@ from tests.e2e.conftest import (
 
 
 def _activate_book(client: TestClient, book_id: str, headers: dict[str, str]) -> None:
-    res = client.post(f"/api/v1/pricing/books/{book_id}/activate", headers=headers)
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/activate", headers=headers)
     if res.status_code != 200:
-        res_patch = client.patch(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+        res_patch = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
         if res_patch.status_code != 200:
-            client.put(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+            client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
 
 
 # ============================================================================
@@ -48,7 +48,7 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
     - Tax: 8.25% on taxable amount
     """
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Standard Dry Cleaning Book",
         "currency": "USD",
@@ -57,7 +57,7 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Suit Rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -65,7 +65,7 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
         "rate": "22.50",
     })
     # Silk Shirt Rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -73,7 +73,7 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
         "rate": "8.50",
     })
     # Delicate Addon Rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_addon_id": str(env["addons"]["delicate"].id),
         "rule_type": "PER_ITEM",
@@ -81,14 +81,14 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
         "rate": "3.00",
     })
     # Surcharge Rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "4.00",
     })
     # Discount Rule: 10%
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
@@ -96,7 +96,7 @@ def test_workload_scenario_1_standard_dry_cleaning_order(client: TestClient):
         "rate_type": "PERCENTAGE",
     })
     # Tax Rule: 8.25%
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -146,7 +146,7 @@ def test_workload_scenario_2_commercial_wash_and_fold(client: TestClient):
     - Tax: 7.0%
     """
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Commercial Bulk Laundry Book",
         "currency": "USD",
@@ -155,7 +155,7 @@ def test_workload_scenario_2_commercial_wash_and_fold(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Laundry by weight rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -163,7 +163,7 @@ def test_workload_scenario_2_commercial_wash_and_fold(client: TestClient):
         "rate": "2.40",
     })
     # Express addon rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_addon_id": str(env["addons"]["express"].id),
         "rule_type": "FIXED",
@@ -171,14 +171,14 @@ def test_workload_scenario_2_commercial_wash_and_fold(client: TestClient):
         "rate": "15.00",
     })
     # Surcharge rule
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "8.00",
     })
     # Tax: 7.0%
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -222,14 +222,14 @@ def test_workload_scenario_3_multi_branch_franchise(client: TestClient):
     env = setup_tenant_and_actor()
 
     # Seller default book
-    seller_book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    seller_book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Franchise Standard Book",
         "currency": "USD",
         "is_default": True,
     })
     seller_book_id = seller_book_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{seller_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{seller_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -239,14 +239,14 @@ def test_workload_scenario_3_multi_branch_franchise(client: TestClient):
     _activate_book(client, seller_book_id, env["headers"])
 
     # Downtown override book
-    downtown_book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    downtown_book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "branch_id": str(env["downtown_branch"].id),
         "name": "Downtown Prime Location Book",
         "currency": "USD",
     })
     downtown_book_id = downtown_book_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{downtown_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{downtown_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -299,7 +299,7 @@ def test_workload_scenario_4_household_upholstery(client: TestClient):
     - Tax: 8.0%
     """
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Household Textiles Book",
         "currency": "USD",
@@ -308,7 +308,7 @@ def test_workload_scenario_4_household_upholstery(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Drapery per sq meter
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["upholstery"].id),
         "service_item_id": str(env["items"]["curtain"].id),
         "rule_type": "PER_UNIT",
@@ -316,7 +316,7 @@ def test_workload_scenario_4_household_upholstery(client: TestClient):
         "rate": "7.00",
     })
     # Rug by weight
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -324,21 +324,21 @@ def test_workload_scenario_4_household_upholstery(client: TestClient):
         "rate": "3.50",
     })
     # Surcharge
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "15.00",
     })
     # Discount
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
         "rate": "10.00",
     })
     # Tax: 8%
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -394,14 +394,14 @@ def test_workload_scenario_5_promotional_seasonal_campaign(client: TestClient):
     env = setup_tenant_and_actor()
 
     # 1. Regular Standard Book
-    std_book = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    std_book = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Regular Catalog Pricing",
         "currency": "USD",
         "is_default": True,
     })
     std_id = std_book.json()["id"]
-    client.post(f"/api/v1/pricing/books/{std_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{std_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -412,7 +412,7 @@ def test_workload_scenario_5_promotional_seasonal_campaign(client: TestClient):
     _activate_book(client, std_id, env["headers"])
 
     # 2. Spring Promotional Campaign Book (Higher priority or specific dates)
-    promo_book = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    promo_book = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Spring Cleaning 2026 Promo",
         "currency": "USD",
@@ -420,7 +420,7 @@ def test_workload_scenario_5_promotional_seasonal_campaign(client: TestClient):
         "effective_to": "2026-05-31T23:59:59Z",
     })
     promo_id = promo_book.json()["id"]
-    client.post(f"/api/v1/pricing/books/{promo_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{promo_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -430,13 +430,13 @@ def test_workload_scenario_5_promotional_seasonal_campaign(client: TestClient):
         "effective_from": "2026-03-01T00:00:00Z",
         "effective_to": "2026-05-31T23:59:59Z",
     })
-    client.post(f"/api/v1/pricing/books/{promo_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{promo_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
         "rate": "2.00",
     })
-    client.post(f"/api/v1/pricing/books/{promo_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{promo_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "TAX",

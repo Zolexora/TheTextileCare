@@ -33,12 +33,12 @@ from tests.e2e.conftest import (
 
 def _activate_book(client: TestClient, book_id: str, headers: dict[str, str]) -> None:
     """Helper to activate a book either via /activate endpoint or PATCH/PUT status."""
-    res = client.post(f"/api/v1/pricing/books/{book_id}/activate", headers=headers)
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/activate", headers=headers)
     if res.status_code != 200:
         # Try PATCH
-        res_patch = client.patch(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+        res_patch = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
         if res_patch.status_code != 200:
-            client.put(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+            client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
 
 
 # ============================================================================
@@ -55,7 +55,7 @@ def test_feature_price_book_create_success(client: TestClient):
         "currency": "USD",
         "is_default": True,
     }
-    res = client.post("/api/v1/pricing/books", headers=env["headers"], json=payload)
+    res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json=payload)
     assert res.status_code == 201, f"Failed: {res.text}"
     data = res.json()
     assert data["name"] == "Standard Seller Catalog Pricing"
@@ -69,7 +69,7 @@ def test_feature_price_book_create_success(client: TestClient):
 def test_feature_price_book_get_by_id(client: TestClient):
     """F-01.2: Verify fetching a specific price book by ID."""
     env = setup_tenant_and_actor()
-    res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Book for Lookup",
         "currency": "USD",
@@ -78,7 +78,7 @@ def test_feature_price_book_get_by_id(client: TestClient):
     assert res.status_code == 201
     book_id = res.json()["id"]
 
-    get_res = client.get(f"/api/v1/pricing/books/{book_id}", headers=env["headers"])
+    get_res = client.get(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"])
     assert get_res.status_code == 200
     book_data = get_res.json()
     assert book_data["id"] == book_id
@@ -89,20 +89,20 @@ def test_feature_price_book_list_and_filter(client: TestClient):
     """F-01.3: Verify listing price books with seller filter."""
     env = setup_tenant_and_actor()
     # Create Book 1 (seller level)
-    client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Seller Level Book",
         "currency": "USD",
     })
     # Create Book 2 (branch level)
-    client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "branch_id": str(env["downtown_branch"].id),
         "name": "Branch Level Book",
         "currency": "USD",
     })
 
-    list_res = client.get(f"/api/v1/pricing/books?seller_id={env['seller'].id}", headers=env["headers"])
+    list_res = client.get(f"/api/v1/pricing/price-books?seller_id={env['seller'].id}", headers=env["headers"])
     assert list_res.status_code == 200
     items = list_res.json()
     assert isinstance(items, list)
@@ -115,7 +115,7 @@ def test_feature_price_book_list_and_filter(client: TestClient):
 def test_feature_price_book_update(client: TestClient):
     """F-01.4: Verify updating price book metadata and description."""
     env = setup_tenant_and_actor()
-    create_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    create_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Original Name",
         "description": "Original Description",
@@ -126,9 +126,9 @@ def test_feature_price_book_update(client: TestClient):
 
     # Try PATCH then PUT
     update_payload = {"name": "Updated Name", "description": "Updated Description"}
-    update_res = client.patch(f"/api/v1/pricing/books/{book_id}", headers=env["headers"], json=update_payload)
+    update_res = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"], json=update_payload)
     if update_res.status_code == 405 or update_res.status_code == 404:
-        update_res = client.put(f"/api/v1/pricing/books/{book_id}", headers=env["headers"], json=update_payload)
+        update_res = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"], json=update_payload)
     
     assert update_res.status_code == 200
     updated = update_res.json()
@@ -139,7 +139,7 @@ def test_feature_price_book_update(client: TestClient):
 def test_feature_price_book_delete(client: TestClient):
     """F-01.5: Verify soft or hard deletion of a price book."""
     env = setup_tenant_and_actor()
-    create_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    create_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "To Be Deleted",
         "currency": "USD",
@@ -147,11 +147,11 @@ def test_feature_price_book_delete(client: TestClient):
     assert create_res.status_code == 201
     book_id = create_res.json()["id"]
 
-    del_res = client.delete(f"/api/v1/pricing/books/{book_id}", headers=env["headers"])
+    del_res = client.delete(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"])
     assert del_res.status_code in (200, 204)
 
     # Subsequent get should return 404
-    get_res = client.get(f"/api/v1/pricing/books/{book_id}", headers=env["headers"])
+    get_res = client.get(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"])
     assert get_res.status_code == 404
 
 
@@ -162,7 +162,7 @@ def test_feature_price_book_delete(client: TestClient):
 def test_feature_price_rule_create(client: TestClient):
     """F-02.1: Verify creating a price rule attached to a price book."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Rule Test Book",
         "currency": "USD",
@@ -178,7 +178,7 @@ def test_feature_price_rule_create(client: TestClient):
         "rate_type": "FLAT",
         "priority": 10,
     }
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json=rule_payload)
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json=rule_payload)
     assert rule_res.status_code == 201, f"Failed: {rule_res.text}"
     rule_data = rule_res.json()
     assert "id" in rule_data
@@ -190,7 +190,7 @@ def test_feature_price_rule_create(client: TestClient):
 def test_feature_price_rule_list(client: TestClient):
     """F-02.2: Verify listing all rules belonging to a specific price book."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Rule Listing Book",
         "currency": "USD",
@@ -198,7 +198,7 @@ def test_feature_price_rule_list(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Add Rule 1
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -206,7 +206,7 @@ def test_feature_price_rule_list(client: TestClient):
         "rate": "15.00",
     })
     # Add Rule 2
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -214,7 +214,7 @@ def test_feature_price_rule_list(client: TestClient):
         "rate": "6.50",
     })
 
-    list_res = client.get(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"])
+    list_res = client.get(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"])
     assert list_res.status_code == 200
     rules = list_res.json()
     assert isinstance(rules, list)
@@ -224,14 +224,14 @@ def test_feature_price_rule_list(client: TestClient):
 def test_feature_price_rule_update(client: TestClient):
     """F-02.3: Verify updating an existing price rule rate and priority."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Rule Update Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    create_rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    create_rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -242,9 +242,9 @@ def test_feature_price_rule_update(client: TestClient):
 
     # Try updating rule via PUT /rules/{id} or PATCH /books/{id}/rules/{id}
     update_payload = {"rate": "12.75", "priority": 5}
-    upd_res = client.put(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json=update_payload)
+    upd_res = client.patch(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json=update_payload)
     if upd_res.status_code in (404, 405):
-        upd_res = client.patch(f"/api/v1/pricing/books/{book_id}/rules/{rule_id}", headers=env["headers"], json=update_payload)
+        upd_res = client.patch(f"/api/v1/pricing/price-books/{book_id}/rules/{rule_id}", headers=env["headers"], json=update_payload)
 
     assert upd_res.status_code == 200
     updated_rule = upd_res.json()
@@ -255,14 +255,14 @@ def test_feature_price_rule_update(client: TestClient):
 def test_feature_price_rule_delete(client: TestClient):
     """F-02.4: Verify deleting a price rule removes it from the book."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Rule Deletion Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -272,11 +272,11 @@ def test_feature_price_rule_delete(client: TestClient):
 
     del_res = client.delete(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"])
     if del_res.status_code in (404, 405):
-        del_res = client.delete(f"/api/v1/pricing/books/{book_id}/rules/{rule_id}", headers=env["headers"])
+        del_res = client.delete(f"/api/v1/pricing/price-books/{book_id}/rules/{rule_id}", headers=env["headers"])
     assert del_res.status_code in (200, 204)
 
     # Listing rules on book should now be empty
-    list_res = client.get(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"])
+    list_res = client.get(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"])
     assert list_res.status_code == 200
     rules = list_res.json()
     assert not any(r["id"] == rule_id for r in rules)
@@ -285,14 +285,14 @@ def test_feature_price_rule_delete(client: TestClient):
 def test_feature_price_rule_addon_attachment(client: TestClient):
     """F-02.5: Verify creating a rule targeting a specific catalog add-on."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Addon Rule Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    addon_rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    addon_rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_addon_id": str(env["addons"]["delicate"].id),
         "rule_type": "PER_ITEM",
@@ -313,7 +313,7 @@ def test_feature_price_rule_addon_attachment(client: TestClient):
 def test_feature_calc_fixed_rule(client: TestClient):
     """F-03.1: Verify calculation for FIXED rule type applies a constant base rate."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Fixed Book",
         "currency": "USD",
@@ -321,7 +321,7 @@ def test_feature_calc_fixed_rule(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "FIXED",
@@ -351,7 +351,7 @@ def test_feature_calc_fixed_rule(client: TestClient):
 def test_feature_calc_per_item_rule(client: TestClient):
     """F-03.2: Verify calculation for PER_ITEM multiplies rate by integer quantity."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Per Item Book",
         "currency": "USD",
@@ -359,7 +359,7 @@ def test_feature_calc_per_item_rule(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -388,7 +388,7 @@ def test_feature_calc_per_item_rule(client: TestClient):
 def test_feature_calc_per_unit_rule(client: TestClient):
     """F-03.3: Verify calculation for PER_UNIT multiplies rate by measurable unit."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Per Unit Book",
         "currency": "USD",
@@ -396,7 +396,7 @@ def test_feature_calc_per_unit_rule(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["upholstery"].id),
         "service_item_id": str(env["items"]["curtain"].id),
         "rule_type": "PER_UNIT",
@@ -426,7 +426,7 @@ def test_feature_calc_per_unit_rule(client: TestClient):
 def test_feature_calc_per_weight_rule(client: TestClient):
     """F-03.4: Verify calculation for PER_WEIGHT multiplies rate by kilograms."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Per Weight Book",
         "currency": "USD",
@@ -434,7 +434,7 @@ def test_feature_calc_per_weight_rule(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -464,7 +464,7 @@ def test_feature_calc_per_weight_rule(client: TestClient):
 def test_feature_calc_mixed_rule_types_in_single_request(client: TestClient):
     """F-03.5: Verify calculation with mixed rule types (PER_ITEM and PER_WEIGHT) simultaneously."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Mixed Rule Types Book",
         "currency": "USD",
@@ -473,7 +473,7 @@ def test_feature_calc_mixed_rule_types_in_single_request(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Rule 1: Shirt dry cleaning (PER_ITEM @ $6.00)
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -481,7 +481,7 @@ def test_feature_calc_mixed_rule_types_in_single_request(client: TestClient):
         "rate": "6.00",
     })
     # Rule 2: Wash & fold (PER_WEIGHT @ $3.00/kg)
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -522,7 +522,7 @@ def test_feature_calc_mixed_rule_types_in_single_request(client: TestClient):
 def test_feature_breakdown_base_price_and_addons(client: TestClient):
     """F-04.1: Verify breakdown captures base item price and addon amounts in subtotal."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Base and Addons Book",
         "currency": "USD",
@@ -531,7 +531,7 @@ def test_feature_breakdown_base_price_and_addons(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Suit base: $20.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -539,7 +539,7 @@ def test_feature_breakdown_base_price_and_addons(client: TestClient):
         "rate": "20.00",
     })
     # Stain removal addon: $5.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_addon_id": str(env["addons"]["stain"].id),
         "rule_type": "PER_ITEM",
@@ -577,7 +577,7 @@ def test_feature_breakdown_base_price_and_addons(client: TestClient):
 def test_feature_breakdown_surcharges(client: TestClient):
     """F-04.2: Verify surcharge component adds to total_surcharges."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Surcharge Breakdown Book",
         "currency": "USD",
@@ -586,7 +586,7 @@ def test_feature_breakdown_surcharges(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Base price: $30.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -594,7 +594,7 @@ def test_feature_breakdown_surcharges(client: TestClient):
         "rate": "30.00",
     })
     # Rush Surcharge: $7.50
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
@@ -623,7 +623,7 @@ def test_feature_breakdown_surcharges(client: TestClient):
 def test_feature_breakdown_discounts(client: TestClient):
     """F-04.3: Verify discount component reduces subtotal in total_discounts."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Discount Breakdown Book",
         "currency": "USD",
@@ -631,14 +631,14 @@ def test_feature_breakdown_discounts(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
         "component_type": "BASE_PRICE",
         "rate": "40.00",
     })
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
@@ -667,7 +667,7 @@ def test_feature_breakdown_discounts(client: TestClient):
 def test_feature_breakdown_tax(client: TestClient):
     """F-04.4: Verify tax component computation on taxable subtotal."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Tax Breakdown Book",
         "currency": "USD",
@@ -675,14 +675,14 @@ def test_feature_breakdown_tax(client: TestClient):
     })
     book_id = book_res.json()["id"]
 
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
         "component_type": "BASE_PRICE",
         "rate": "100.00",
     })
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -712,7 +712,7 @@ def test_feature_breakdown_tax(client: TestClient):
 def test_feature_breakdown_all_four_tiers_with_invariant(client: TestClient):
     """F-04.5: Verify full 4-tier combination (Base + Surcharge - Discount + Tax) satisfies invariant."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Complete 4-Tier Book",
         "currency": "USD",
@@ -721,7 +721,7 @@ def test_feature_breakdown_all_four_tiers_with_invariant(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Base: $100.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -729,21 +729,21 @@ def test_feature_breakdown_all_four_tiers_with_invariant(client: TestClient):
         "rate": "100.00",
     })
     # Surcharge: $10.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "10.00",
     })
     # Discount: $20.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
         "rate": "20.00",
     })
     # Tax: 10% on taxable (100 + 10 - 20 = 90.00 -> 9.00 tax)
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -780,7 +780,7 @@ def test_feature_breakdown_all_four_tiers_with_invariant(client: TestClient):
 def test_feature_rbac_pricing_manage_allows_mutation(client: TestClient):
     """F-05.1: Verify user with pricing.manage permission can create books and rules."""
     env = setup_tenant_and_actor(role="TENANT_ADMIN")
-    res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Admin Managed Book",
         "currency": "USD",
@@ -795,7 +795,7 @@ def test_feature_rbac_pricing_read_allows_listing_and_calculation(client: TestCl
     create_test_membership(env["tenant"].id, viewer_user.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer_user, env["tenant"])
 
-    list_res = client.get("/api/v1/pricing/books", headers=viewer_headers)
+    list_res = client.get("/api/v1/pricing/price-books", headers=viewer_headers)
     assert list_res.status_code == 200
 
     calc_res = client.post("/api/v1/pricing/calculate", headers=viewer_headers, json={
@@ -819,7 +819,7 @@ def test_feature_rbac_viewer_denied_mutation(client: TestClient):
     create_test_membership(env["tenant"].id, viewer_user.id, "VIEWER")
     viewer_headers = make_auth_headers(viewer_user, env["tenant"])
 
-    res = client.post("/api/v1/pricing/books", headers=viewer_headers, json={
+    res = client.post("/api/v1/pricing/price-books", headers=viewer_headers, json={
         "seller_id": str(env["seller"].id),
         "name": "Illegal Book",
         "currency": "USD",
@@ -835,11 +835,11 @@ def test_feature_rbac_tenant_member_denied_all(client: TestClient):
     member_headers = make_auth_headers(member_user, env["tenant"])
 
     # Read denied
-    res_get = client.get("/api/v1/pricing/books", headers=member_headers)
+    res_get = client.get("/api/v1/pricing/price-books", headers=member_headers)
     assert res_get.status_code == 403
 
     # Create denied
-    res_post = client.post("/api/v1/pricing/books", headers=member_headers, json={
+    res_post = client.post("/api/v1/pricing/price-books", headers=member_headers, json={
         "seller_id": str(env["seller"].id),
         "name": "Member Blocked Book",
         "currency": "USD",
@@ -849,10 +849,10 @@ def test_feature_rbac_tenant_member_denied_all(client: TestClient):
 
 def test_feature_rbac_unauthenticated_request_rejected(client: TestClient):
     """F-05.5: Verify unauthenticated requests lacking headers are rejected."""
-    res_get = client.get("/api/v1/pricing/books")
+    res_get = client.get("/api/v1/pricing/price-books")
     assert res_get.status_code in (401, 403)
 
-    res_post = client.post("/api/v1/pricing/books", json={"name": "No Auth Book"})
+    res_post = client.post("/api/v1/pricing/price-books", json={"name": "No Auth Book"})
     assert res_post.status_code in (401, 403)
 
 
@@ -863,7 +863,7 @@ def test_feature_rbac_unauthenticated_request_rejected(client: TestClient):
 def test_feature_audit_book_created_logged(client: TestClient):
     """F-06.1: Verify AuditService logs PRICING_BOOK_CREATED on book creation."""
     env = setup_tenant_and_actor()
-    res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Audited Creation Book",
         "currency": "USD",
@@ -884,7 +884,7 @@ def test_feature_audit_book_created_logged(client: TestClient):
 def test_feature_audit_book_updated_logged(client: TestClient):
     """F-06.2: Verify AuditService logs PRICING_BOOK_UPDATED on book modification."""
     env = setup_tenant_and_actor()
-    res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Audit Update Book",
         "currency": "USD",
@@ -892,9 +892,9 @@ def test_feature_audit_book_updated_logged(client: TestClient):
     book_id = res.json()["id"]
 
     update_payload = {"name": "Audit Update Book Renamed"}
-    upd_res = client.patch(f"/api/v1/pricing/books/{book_id}", headers=env["headers"], json=update_payload)
+    upd_res = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"], json=update_payload)
     if upd_res.status_code in (404, 405):
-        client.put(f"/api/v1/pricing/books/{book_id}", headers=env["headers"], json=update_payload)
+        client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=env["headers"], json=update_payload)
 
     with SessionLocal() as db:
         events = db.query(AuditEvent).filter(
@@ -907,14 +907,14 @@ def test_feature_audit_book_updated_logged(client: TestClient):
 def test_feature_audit_rule_created_logged(client: TestClient):
     """F-06.3: Verify AuditService logs PRICING_RULE_CREATED on rule creation."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Audit Rule Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -936,14 +936,14 @@ def test_feature_audit_rule_created_logged(client: TestClient):
 def test_feature_audit_rule_updated_logged(client: TestClient):
     """F-06.4: Verify AuditService logs PRICING_RULE_UPDATED on rule update."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Audit Rule Upd Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -951,9 +951,9 @@ def test_feature_audit_rule_updated_logged(client: TestClient):
     })
     rule_id = rule_res.json()["id"]
 
-    upd_res = client.put(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json={"rate": "14.00"})
+    upd_res = client.patch(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"], json={"rate": "14.00"})
     if upd_res.status_code in (404, 405):
-        client.patch(f"/api/v1/pricing/books/{book_id}/rules/{rule_id}", headers=env["headers"], json={"rate": "14.00"})
+        client.patch(f"/api/v1/pricing/price-books/{book_id}/rules/{rule_id}", headers=env["headers"], json={"rate": "14.00"})
 
     with SessionLocal() as db:
         events = db.query(AuditEvent).filter(
@@ -966,14 +966,14 @@ def test_feature_audit_rule_updated_logged(client: TestClient):
 def test_feature_audit_rule_deleted_logged(client: TestClient):
     """F-06.5: Verify AuditService logs PRICING_RULE_DELETED on rule deletion."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Audit Rule Del Book",
         "currency": "USD",
     })
     book_id = book_res.json()["id"]
 
-    rule_res = client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    rule_res = client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "BASE_PRICE",
@@ -983,7 +983,7 @@ def test_feature_audit_rule_deleted_logged(client: TestClient):
 
     del_res = client.delete(f"/api/v1/pricing/rules/{rule_id}", headers=env["headers"])
     if del_res.status_code in (404, 405):
-        client.delete(f"/api/v1/pricing/books/{book_id}/rules/{rule_id}", headers=env["headers"])
+        client.delete(f"/api/v1/pricing/price-books/{book_id}/rules/{rule_id}", headers=env["headers"])
 
     with SessionLocal() as db:
         events = db.query(AuditEvent).filter(

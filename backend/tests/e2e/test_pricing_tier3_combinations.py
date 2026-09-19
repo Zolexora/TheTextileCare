@@ -24,11 +24,11 @@ from tests.e2e.conftest import (
 
 
 def _activate_book(client: TestClient, book_id: str, headers: dict[str, str]) -> None:
-    res = client.post(f"/api/v1/pricing/books/{book_id}/activate", headers=headers)
+    res = client.post(f"/api/v1/pricing/price-books/{book_id}/activate", headers=headers)
     if res.status_code != 200:
-        res_patch = client.patch(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+        res_patch = client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
         if res_patch.status_code != 200:
-            client.put(f"/api/v1/pricing/books/{book_id}", headers=headers, json={"status": "ACTIVE"})
+            client.patch(f"/api/v1/pricing/price-books/{book_id}", headers=headers, json={"status": "ACTIVE"})
 
 
 # ============================================================================
@@ -40,14 +40,14 @@ def test_combination_precedence_seller_overrides_platform(client: TestClient):
     env = setup_tenant_and_actor()
 
     # 1. Platform Default Book ($15.00)
-    plat_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    plat_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": None,
         "name": "Platform Default Book",
         "currency": "USD",
         "is_default": True,
     })
     plat_id = plat_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{plat_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{plat_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -57,14 +57,14 @@ def test_combination_precedence_seller_overrides_platform(client: TestClient):
     _activate_book(client, plat_id, env["headers"])
 
     # 2. Seller Default Book ($10.00)
-    seller_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    seller_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Seller Custom Book",
         "currency": "USD",
         "is_default": True,
     })
     seller_id = seller_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{seller_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{seller_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -95,14 +95,14 @@ def test_combination_precedence_branch_overrides_seller(client: TestClient):
     env = setup_tenant_and_actor()
 
     # 1. Seller Book ($12.00)
-    seller_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    seller_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Seller Standard Book",
         "currency": "USD",
         "is_default": True,
     })
     seller_book_id = seller_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{seller_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{seller_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -112,7 +112,7 @@ def test_combination_precedence_branch_overrides_seller(client: TestClient):
     _activate_book(client, seller_book_id, env["headers"])
 
     # 2. Downtown Branch Book ($16.00)
-    branch_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    branch_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "branch_id": str(env["downtown_branch"].id),
         "name": "Downtown Premium Branch Book",
@@ -120,7 +120,7 @@ def test_combination_precedence_branch_overrides_seller(client: TestClient):
         "is_default": False,
     })
     branch_book_id = branch_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{branch_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{branch_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -164,21 +164,21 @@ def test_combination_precedence_branch_fallback_to_seller(client: TestClient):
     env = setup_tenant_and_actor()
 
     # Seller book has Suit ($25.00) and Shirt ($8.00)
-    seller_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    seller_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Full Seller Catalog Book",
         "currency": "USD",
         "is_default": True,
     })
     seller_book_id = seller_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{seller_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{seller_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
         "component_type": "BASE_PRICE",
         "rate": "25.00",
     })
-    client.post(f"/api/v1/pricing/books/{seller_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{seller_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -188,14 +188,14 @@ def test_combination_precedence_branch_fallback_to_seller(client: TestClient):
     _activate_book(client, seller_book_id, env["headers"])
 
     # Branch book ONLY overrides Suit ($30.00), has NO rule for Shirt
-    branch_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    branch_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "branch_id": str(env["downtown_branch"].id),
         "name": "Branch Suit Override Only",
         "currency": "USD",
     })
     branch_book_id = branch_res.json()["id"]
-    client.post(f"/api/v1/pricing/books/{branch_book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{branch_book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -235,7 +235,7 @@ def test_combination_precedence_branch_fallback_to_seller(client: TestClient):
 def test_combination_specificity_item_overrides_service_level(client: TestClient):
     """C-02.1: Verify item-specific rule ($18.00) overrides generic service-level rule ($12.00)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Specificity Test Book",
         "currency": "USD",
@@ -244,7 +244,7 @@ def test_combination_specificity_item_overrides_service_level(client: TestClient
     book_id = book_res.json()["id"]
 
     # Generic Service Rule: Dry Cleaning service @ $12.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": None,
         "rule_type": "PER_ITEM",
@@ -254,7 +254,7 @@ def test_combination_specificity_item_overrides_service_level(client: TestClient
     })
 
     # Item-Specific Rule: Silk Shirt item @ $18.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -297,7 +297,7 @@ def test_combination_specificity_item_overrides_service_level(client: TestClient
 def test_combination_priority_tie_breaking(client: TestClient):
     """C-02.2: Verify higher priority rule (priority=20 @ $22.00) wins over lower priority (priority=10 @ $20.00)."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Priority Tie Break Book",
         "currency": "USD",
@@ -306,7 +306,7 @@ def test_combination_priority_tie_breaking(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Rule 1: Priority 10 -> $20.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -316,7 +316,7 @@ def test_combination_priority_tie_breaking(client: TestClient):
     })
 
     # Rule 2: Priority 20 -> $22.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -349,7 +349,7 @@ def test_combination_priority_tie_breaking(client: TestClient):
 def test_combination_composite_single_line_full_breakdown(client: TestClient):
     """C-03.1: Verify single line order with multiple addons, weight surcharge, discount and tax."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Composite Single Line Book",
         "currency": "USD",
@@ -358,7 +358,7 @@ def test_combination_composite_single_line_full_breakdown(client: TestClient):
     book_id = book_res.json()["id"]
 
     # Base item: 2-piece suit @ $30.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["suit"].id),
         "rule_type": "PER_ITEM",
@@ -366,7 +366,7 @@ def test_combination_composite_single_line_full_breakdown(client: TestClient):
         "rate": "30.00",
     })
     # Addon 1: Delicate Treatment @ $5.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_addon_id": str(env["addons"]["delicate"].id),
         "rule_type": "PER_ITEM",
@@ -374,7 +374,7 @@ def test_combination_composite_single_line_full_breakdown(client: TestClient):
         "rate": "5.00",
     })
     # Addon 2: Stain Removal @ $7.50
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_addon_id": str(env["addons"]["stain"].id),
         "rule_type": "PER_ITEM",
@@ -382,21 +382,21 @@ def test_combination_composite_single_line_full_breakdown(client: TestClient):
         "rate": "7.50",
     })
     # Surcharge: Rush fee $10.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "10.00",
     })
     # Discount: VIP coupon $5.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "DISCOUNT",
         "rate": "5.00",
     })
     # Tax: 8% on taxable
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "rule_type": "FIXED",
         "component_type": "TAX",
@@ -439,7 +439,7 @@ def test_combination_composite_single_line_full_breakdown(client: TestClient):
 def test_combination_composite_multi_item_order(client: TestClient):
     """C-03.2: Verify multiple order items combining garments and weight-based laundry."""
     env = setup_tenant_and_actor()
-    book_res = client.post("/api/v1/pricing/books", headers=env["headers"], json={
+    book_res = client.post("/api/v1/pricing/price-books", headers=env["headers"], json={
         "seller_id": str(env["seller"].id),
         "name": "Multi Item Composite Book",
         "currency": "USD",
@@ -448,7 +448,7 @@ def test_combination_composite_multi_item_order(client: TestClient):
     book_id = book_res.json()["id"]
 
     # 1. Shirts: $7.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["dry_cleaning"].id),
         "service_item_id": str(env["items"]["shirt"].id),
         "rule_type": "PER_ITEM",
@@ -456,7 +456,7 @@ def test_combination_composite_multi_item_order(client: TestClient):
         "rate": "7.00",
     })
     # 2. Laundry: $2.50/kg
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "service_item_id": str(env["items"]["laundry_bag"].id),
         "rule_type": "PER_WEIGHT",
@@ -464,14 +464,14 @@ def test_combination_composite_multi_item_order(client: TestClient):
         "rate": "2.50",
     })
     # Surcharge: $5.00
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": str(env["services"]["wash_fold"].id),
         "rule_type": "FIXED",
         "component_type": "SURCHARGE",
         "rate": "5.00",
     })
     # Tax: 10%
-    client.post(f"/api/v1/pricing/books/{book_id}/rules", headers=env["headers"], json={
+    client.post(f"/api/v1/pricing/price-books/{book_id}/rules", headers=env["headers"], json={
         "service_id": None,
         "rule_type": "FIXED",
         "component_type": "TAX",

@@ -6,3 +6,4 @@ export * from './pricing';
 export * from './customer';
 export * from './marketplace';
 export * from './order';
+export * from './commercial';

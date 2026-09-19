@@ -31,6 +31,8 @@ from app.db import Base
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
+    from app.models.payment import Payment
+    from app.models.pickup import OrderPickup
     from app.models.seller import Branch, Seller
     from app.models.tenant import Tenant
     from app.models.user import User
@@ -151,6 +153,10 @@ class Order(Base):
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
+    reselected_from_order_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("orders.id", ondelete="SET NULL", name="fk_orders_reselected_from_order_id_orders"), nullable=True, index=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -177,6 +183,15 @@ class Order(Base):
         back_populates="order",
         cascade="all, delete-orphan",
         order_by="OrderStatusHistory.created_at",
+    )
+    reselected_from_order: Mapped[Order | None] = relationship(
+        "Order", remote_side="Order.id", foreign_keys=[reselected_from_order_id]
+    )
+    pickup: Mapped[OrderPickup | None] = relationship(
+        "OrderPickup", back_populates="order", uselist=False, cascade="all, delete-orphan"
+    )
+    payment: Mapped[Payment | None] = relationship(
+        "Payment", back_populates="order", uselist=False, cascade="all, delete-orphan"
     )
 
 

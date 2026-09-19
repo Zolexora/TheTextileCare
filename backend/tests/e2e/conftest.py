@@ -21,9 +21,22 @@ from app.repositories.users import UserRepository
 from app.services.roles import RoleService
 
 
+def _deduplicate_table_indexes():
+    for table in Base.metadata.tables.values():
+        seen_names = set()
+        unique_indexes = set()
+        for idx in list(table.indexes):
+            if idx.name not in seen_names:
+                seen_names.add(idx.name)
+                unique_indexes.add(idx)
+        table.indexes.clear()
+        table.indexes.update(unique_indexes)
+
+
 @pytest.fixture(autouse=True)
 def reset_database():
     """Reset database tables and seed defaults before each test."""
+    _deduplicate_table_indexes()
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:

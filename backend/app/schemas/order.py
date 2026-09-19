@@ -243,3 +243,14 @@ class PriceChangedDetail(BaseModel):
     current_grand_total: Decimal
     currency: str
     message: str = "The price has changed since you last viewed this item. Please confirm the new price."
+
+
+# ---------------------------------------------------------------------------
+# Order Reselect Request (Phase 7 R4)
+# ---------------------------------------------------------------------------
+
+class OrderReselectRequest(BaseModel):
+    """Customer request to re-select an alternative seller after restriction cancellation (R4)."""
+    new_seller_id: uuid.UUID
+    new_branch_id: uuid.UUID
+

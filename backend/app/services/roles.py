@@ -23,6 +23,7 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
     RoleName.SELLER_ADMIN.value: 'Seller administrator managing branches and staff',
     RoleName.STAFF.value: 'Seller staff with operational permissions',
     RoleName.VIEWER.value: 'Read-only seller viewer',
+    RoleName.CUSTOMER.value: 'Marketplace retail customer with order and payment access',
 }
 
 PERMISSION_DESCRIPTIONS: dict[str, str] = {
@@ -67,6 +68,16 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.ORDER_CONFIRM.value: 'Confirm pending orders',
     PermissionName.ORDER_PROCESS.value: 'Process and complete orders',
     PermissionName.ORDER_CANCEL.value: 'Cancel orders',
+
+    # Phase 7 Commercial, Billing, Payment & Settlement Descriptions
+    PermissionName.COMMERCIAL_READ.value: 'View seller commercial configuration and restriction levels',
+    PermissionName.COMMERCIAL_MANAGE.value: 'Configure seller commercial models, commission rates, and payment switches',
+    PermissionName.PAYMENT_READ.value: 'View order payment records, fee breakdowns, and refund details',
+    PermissionName.PAYMENT_PROCESS.value: 'Execute payments, process gateway callbacks, and issue refunds',
+    PermissionName.BILLING_READ.value: 'View monthly seller billing invoices and overdue penalties',
+    PermissionName.BILLING_MANAGE.value: 'Generate monthly invoices, calculate penalties, and manage invoice status',
+    PermissionName.SETTLEMENT_READ.value: 'View cooling hold balances and weekly settlement disbursement status',
+    PermissionName.SETTLEMENT_PROCESS.value: 'Trigger and execute weekly Monday settlement payouts',
 }
 
 

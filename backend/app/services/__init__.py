@@ -20,8 +20,12 @@ __all__.extend([
 ])
 from .catalog import CatalogService
 from .pricing import PricingService
+from .customer import CustomerService
+from .marketplace import MarketplaceService
 
 __all__.extend([
     'CatalogService',
     'PricingService',
+    'CustomerService',
+    'MarketplaceService',
 ])

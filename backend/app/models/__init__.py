@@ -29,6 +29,7 @@ from app.models.role_permission import RolePermission
 from app.models.seller import Branch, BusinessHour, Seller, SellerSettings, StaffProfile
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.customer import Customer, CustomerAddress, CustomerSeller
 
 __all__ = [
     'AuditEvent',
@@ -60,4 +61,7 @@ __all__ = [
     'PriceRuleType',
     'ComponentType',
     'RateType',
+    'Customer',
+    'CustomerAddress',
+    'CustomerSeller',
 ]

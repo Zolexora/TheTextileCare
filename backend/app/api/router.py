@@ -12,6 +12,8 @@ from app.api.v1.sellers import router as sellers_router
 from app.api.v1.configuration import router as configuration_router
 from app.api.v1.catalog import router as catalog_router
 from app.api.v1.pricing import router as pricing_router
+from app.api.v1.customer import router as customer_router
+from app.api.v1.marketplace import router as marketplace_router
 
 router = APIRouter()
 
@@ -25,3 +27,5 @@ router.include_router(sellers_router, prefix='/api/v1')
 router.include_router(configuration_router, prefix='/api/v1')
 router.include_router(catalog_router, prefix='/api/v1/catalog')
 router.include_router(pricing_router, prefix='/api/v1/pricing')
+router.include_router(customer_router, prefix='/api/v1/customer')
+router.include_router(marketplace_router, prefix='/api/v1/marketplace')

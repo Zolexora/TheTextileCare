@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     app_base_url: str = Field(default='http://localhost:8000')
     api_base_url: str = Field(default='http://localhost:8000')
     database_url: str = Field(
-        default='postgresql+psycopg://postgres:postgres@localhost:5432/the_textile_care'
+        default='postgresql+psycopg://postgres:postgres@127.0.0.1:54322/postgres'
     )
     redis_url: str = Field(default='redis://localhost:6379/0')
     auth_secret: str = Field(default='change-me')

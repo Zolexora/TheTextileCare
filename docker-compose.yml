@@ -1,84 +1,58 @@
-# ── Networks ──────────────────────────────────────────────────────────────────
 networks:
   ttc-internal:
     driver: bridge
-
-# ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
-  postgres_data:
-  redis_data:
-
-# ── Services ──────────────────────────────────────────────────────────────────
+  redis_data: null
 services:
-
-  # ── Infrastructure ──────────────────────────────────────────────────────────
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: ttc-postgres
-    restart: unless-stopped
-    networks: [ttc-internal]
-    environment:
-      POSTGRES_DB:       ${POSTGRES_DB:-the_textile_care}
-      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: ttc-redis
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
+    - 6379:6379
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
     volumes:
-      - redis_data:/data
+    - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+      - CMD
+      - redis-cli
+      - ping
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # ── Backend API ─────────────────────────────────────────────────────────────
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: ttc-backend
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     env_file: .env
     environment:
-      APP_ENV:      ${APP_ENV:-development}
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/the_textile_care}
-      REDIS_URL:    ${REDIS_URL:-redis://redis:6379/0}
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@host.docker.internal:54322/postgres}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8000}
     ports:
-      - "8000:8000"
+    - 8000:8000
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\""]
+      test:
+      - CMD-SHELL
+      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 10s
-
-  # ── Web Frontends ────────────────────────────────────────────────────────────
-
   admin-web:
     build:
       context: .
@@ -87,15 +61,15 @@ services:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     container_name: ttc-admin-web
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     depends_on:
       backend:
         condition: service_healthy
     environment:
       NODE_ENV: production
     ports:
-      - "3000:3000"
-
+    - 3000:3000
   marketplace-web:
     build:
       context: .
@@ -104,15 +78,15 @@ services:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     container_name: ttc-marketplace-web
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     depends_on:
       backend:
         condition: service_healthy
     environment:
       NODE_ENV: production
     ports:
-      - "3001:3001"
-
+    - 3001:3001
   seller-web:
     build:
       context: .
@@ -121,77 +95,72 @@ services:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     container_name: ttc-seller-web
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     depends_on:
       backend:
         condition: service_healthy
     environment:
       NODE_ENV: production
     ports:
-      - "3002:3002"
-
-  # ── Mobile Dev Servers (profile: mobile-dev) ─────────────────────────────
-  # Phones/emulators connect to these Metro bundler servers over LAN.
-  # Usage: docker compose --profile mobile-dev up
-  # Then open Expo Go → scan QR / enter exp://<host-ip>:<port>
-
+    - 3002:3002
   marketplace-mobile-dev:
-    profiles: [mobile-dev]
+    profiles:
+    - mobile-dev
     build:
       context: .
       dockerfile: apps/marketplace-mobile/Dockerfile
       target: dev
     container_name: ttc-marketplace-mobile-dev
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     environment:
       EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
     ports:
-      - "8081:8081"   # Metro bundler
-      - "19000:19000" # Expo DevTools
-      - "19001:19001"
-      - "19002:19002"
-
+    - 8081:8081
+    - 19000:19000
+    - 19001:19001
+    - 19002:19002
   seller-mobile-dev:
-    profiles: [mobile-dev]
+    profiles:
+    - mobile-dev
     build:
       context: .
       dockerfile: apps/seller-mobile/Dockerfile
       target: dev
     container_name: ttc-seller-mobile-dev
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     environment:
       EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
     ports:
-      - "8082:8082"
-      - "19003:19000"
-      - "19004:19001"
-      - "19005:19002"
-
+    - 8082:8082
+    - 19003:19000
+    - 19004:19001
+    - 19005:19002
   driver-mobile-dev:
-    profiles: [mobile-dev]
+    profiles:
+    - mobile-dev
     build:
       context: .
       dockerfile: apps/driver-mobile/Dockerfile
       target: dev
     container_name: ttc-driver-mobile-dev
     restart: unless-stopped
-    networks: [ttc-internal]
+    networks:
+    - ttc-internal
     environment:
       EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
     ports:
-      - "8083:8083"
-      - "19006:19000"
-      - "19007:19001"
-      - "19008:19002"
-
-  # ── Mobile Android APK Builds (profile: mobile-build-apk) ─────────────────
-  # Runs a full Gradle/Expo release build and drops .apk files in /output.
-  # Usage: docker compose --profile mobile-build-apk run --rm marketplace-mobile-apk
-
+    - 8083:8083
+    - 19006:19000
+    - 19007:19001
+    - 19008:19002
   marketplace-mobile-apk:
-    profiles: [mobile-build-apk]
+    profiles:
+    - mobile-build-apk
     build:
       context: .
       dockerfile: apps/marketplace-mobile/Dockerfile
@@ -200,10 +169,10 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-marketplace-mobile-apk
     volumes:
-      - ./dist/mobile:/output   # APK lands here on the host
-
+    - ./dist/mobile:/output
   seller-mobile-apk:
-    profiles: [mobile-build-apk]
+    profiles:
+    - mobile-build-apk
     build:
       context: .
       dockerfile: apps/seller-mobile/Dockerfile
@@ -212,10 +181,10 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-seller-mobile-apk
     volumes:
-      - ./dist/mobile:/output
-
+    - ./dist/mobile:/output
   driver-mobile-apk:
-    profiles: [mobile-build-apk]
+    profiles:
+    - mobile-build-apk
     build:
       context: .
       dockerfile: apps/driver-mobile/Dockerfile
@@ -224,14 +193,10 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-driver-mobile-apk
     volumes:
-      - ./dist/mobile:/output
-
-  # ── Mobile Android AAB Builds (profile: mobile-build-aab) ─────────────────
-  # Runs a full Gradle/Expo release build and drops .aab files in /output.
-  # Usage: docker compose --profile mobile-build-aab run --rm marketplace-mobile-aab
-
+    - ./dist/mobile:/output
   marketplace-mobile-aab:
-    profiles: [mobile-build-aab]
+    profiles:
+    - mobile-build-aab
     build:
       context: .
       dockerfile: apps/marketplace-mobile/Dockerfile
@@ -240,10 +205,10 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-marketplace-mobile-aab
     volumes:
-      - ./dist/mobile:/output   # AAB lands here on the host
-
+    - ./dist/mobile:/output
   seller-mobile-aab:
-    profiles: [mobile-build-aab]
+    profiles:
+    - mobile-build-aab
     build:
       context: .
       dockerfile: apps/seller-mobile/Dockerfile
@@ -252,10 +217,10 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-seller-mobile-aab
     volumes:
-      - ./dist/mobile:/output
-
+    - ./dist/mobile:/output
   driver-mobile-aab:
-    profiles: [mobile-build-aab]
+    profiles:
+    - mobile-build-aab
     build:
       context: .
       dockerfile: apps/driver-mobile/Dockerfile
@@ -264,4 +229,4 @@ services:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
     container_name: ttc-driver-mobile-aab
     volumes:
-      - ./dist/mobile:/output
+    - ./dist/mobile:/output

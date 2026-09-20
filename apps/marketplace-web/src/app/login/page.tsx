@@ -46,9 +46,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Link href="/" aria-label="Home" className="inline-flex shrink-0 items-center justify-center">
-            <Logo theme="light" size="sm" className="mx-auto dark:hidden" />
-            <Logo theme="dark" size="sm" className="mx-auto hidden dark:block" />
+          <Link href="/" aria-label="Home" className="inline-flex shrink-0 items-center justify-center min-w-max">
+            <Logo theme="light" size="sm" className="mx-auto dark:hidden w-auto h-8 object-contain" />
+            <Logo theme="dark" size="sm" className="mx-auto hidden dark:block w-auto h-8 object-contain" />
           </Link>
           <h1 className="mt-4 text-2xl font-bold text-foreground">
             {mode === 'login' ? 'Welcome back' : 'Create account'}

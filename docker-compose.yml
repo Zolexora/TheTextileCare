@@ -1,13 +1,26 @@
-version: '3.9'
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  ttc-internal:
+    driver: bridge
 
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+
+# ── Services ──────────────────────────────────────────────────────────────────
 services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
-    container_name: the-textile-care-postgres
+    container_name: ttc-postgres
     restart: unless-stopped
+    networks: [ttc-internal]
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-the_textile_care}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB:       ${POSTGRES_DB:-the_textile_care}
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
@@ -21,8 +34,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: the-textile-care-redis
+    container_name: ttc-redis
     restart: unless-stopped
+    networks: [ttc-internal]
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
@@ -34,26 +48,84 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Backend API ─────────────────────────────────────────────────────────────
+
   backend:
     build:
-      context: ./backend
-    container_name: the-textile-care-backend
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ttc-backend
     restart: unless-stopped
+    networks: [ttc-internal]
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - ./.env
+    env_file: .env
     environment:
-      APP_ENV: ${APP_ENV:-development}
+      APP_ENV:      ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/the_textile_care}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_URL:    ${REDIS_URL:-redis://redis:6379/0}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8000}
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-volumes:
-  postgres_data:
-  redis_data:
+  # ── Web Frontends ────────────────────────────────────────────────────────────
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    container_name: ttc-admin-web
+    restart: unless-stopped
+    networks: [ttc-internal]
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+
+  marketplace-web:
+    build:
+      context: .
+      dockerfile: apps/marketplace-web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    container_name: ttc-marketplace-web
+    restart: unless-stopped
+    networks: [ttc-internal]
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+
+  seller-web:
+    build:
+      context: .
+      dockerfile: apps/seller-web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    container_name: ttc-seller-web
+    restart: unless-stopped
+    networks: [ttc-internal]
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3002:3002"

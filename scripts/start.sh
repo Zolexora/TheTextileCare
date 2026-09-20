@@ -326,16 +326,43 @@ get_port_for_app() {
 
 kill_port() {
   local port=$1
-  if [ -n "$port" ]; then
-    local pid=$(lsof -ti tcp:$port 2>/dev/null)
-    if [ -n "$pid" ]; then
-      echo "==> Port $port is busy. Killing process $pid..."
-      kill -9 $pid 2>/dev/null || true
-      sleep 1
+  [ -z "$port" ] && return
+
+  # Try fuser first (kills all PIDs on the port in one shot)
+  if command -v fuser &>/dev/null; then
+    local pids
+    pids=$(fuser "${port}/tcp" 2>/dev/null || true)
+    if [ -n "$pids" ]; then
+      echo "==> Port $port busy (pids: $pids). Killing..."
+      fuser -k "${port}/tcp" 2>/dev/null || true
     fi
   fi
+
+  # Also kill anything lsof finds (catches processes fuser may miss)
+  local lsof_pids
+  lsof_pids=$(lsof -ti "tcp:$port" 2>/dev/null || true)
+  if [ -n "$lsof_pids" ]; then
+    echo "==> Port $port: also killing lsof-found pids: $lsof_pids"
+    # Kill the whole process tree for each PID
+    for pid in $lsof_pids; do
+      pkill -KILL -P "$pid" 2>/dev/null || true
+      kill -9 "$pid" 2>/dev/null || true
+    done
+  fi
+
+  # Wait up to 5 seconds for the port to actually free up
+  local waited=0
+  while lsof -ti "tcp:$port" &>/dev/null; do
+    if [ $waited -ge 5 ]; then
+      echo "==> Warning: port $port still busy after 5s, continuing anyway..."
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
 }
 
+# Kill all ports for selected apps before starting
 for app in "${RESOLVED_APPS[@]}"; do
   port=$(get_port_for_app "$app")
   if [ -n "$port" ]; then

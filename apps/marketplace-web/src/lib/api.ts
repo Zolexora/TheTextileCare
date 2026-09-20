@@ -85,9 +85,13 @@ export async function getMarketplaceSellers(
   params: SellerSearchParams,
   token?: string | null
 ): Promise<SellerListResponse> {
-  return getClient().request<SellerListResponse>(`/api/v1/marketplace/sellers${qs(params as Q)}`, {
+  const raw = await getClient().request<any>(`/api/v1/marketplace/sellers${qs(params as Q)}`, {
     headers: authed(token),
   });
+  if (Array.isArray(raw)) {
+    return { sellers: raw, total: raw.length };
+  }
+  return raw;
 }
 
 export async function getMarketplaceSeller(
@@ -102,9 +106,11 @@ export async function getMarketplaceSeller(
 export async function getMarketplaceCategories(
   token?: string | null
 ): Promise<MarketplaceCategory[]> {
-  return getClient().request<MarketplaceCategory[]>(`/api/v1/marketplace/categories`, {
-    headers: authed(token),
-  });
+  // Global categories not yet supported by backend, mocking fallback
+  return [
+    { id: 'cat_1', name: 'Wash & Fold', slug: 'wash-and-fold', description: null, image_url: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&q=80&w=400', is_active: true, display_order: 1 },
+    { id: 'cat_2', name: 'Dry Cleaning', slug: 'dry-cleaning', description: null, image_url: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&q=80&w=400', is_active: true, display_order: 2 },
+  ] as MarketplaceCategory[];
 }
 
 export async function getMarketplaceServices(

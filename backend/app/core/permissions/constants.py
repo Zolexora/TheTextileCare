@@ -20,6 +20,9 @@ class RoleName(str, Enum):
     # Phase 7 Customer Role
     CUSTOMER = 'CUSTOMER'
 
+    # Phase 8 Driver Role
+    DRIVER = 'DRIVER'
+
 
 class PermissionName(str, Enum):
     TENANT_READ = 'tenant.read'
@@ -83,6 +86,14 @@ class PermissionName(str, Enum):
     SETTLEMENT_READ = 'settlement.read'
     SETTLEMENT_PROCESS = 'settlement.process'
 
+    # Phase 8 Driver & Duty Logistics Permissions
+    DRIVER_VIEW = 'driver.view'
+    DRIVER_MANAGE = 'driver.manage'
+    DUTY_VIEW = 'duty.view'
+    DUTY_MANAGE = 'duty.manage'
+    DUTY_REASSIGN = 'duty.reassign'
+    OPERATIONS_ALERT_VIEW = 'operations_alert.view'
+
 
 PLATFORM_ROLES = {
     RoleName.PLATFORM_ADMIN.value,
@@ -98,6 +109,7 @@ TENANT_ROLES = {
     RoleName.SELLER_ADMIN.value,
     RoleName.STAFF.value,
     RoleName.VIEWER.value,
+    RoleName.DRIVER.value,
 }
 
 # Role to Permissions matrix following least privilege
@@ -153,6 +165,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.BILLING_MANAGE.value,
         PermissionName.SETTLEMENT_READ.value,
         PermissionName.SETTLEMENT_PROCESS.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DRIVER_MANAGE.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.PLATFORM_SUPPORT.value: [
         PermissionName.TENANT_READ.value,
@@ -221,6 +239,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.PAYMENT_PROCESS.value,
         PermissionName.BILLING_READ.value,
         PermissionName.SETTLEMENT_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DRIVER_MANAGE.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.TENANT_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -268,6 +292,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.PAYMENT_PROCESS.value,
         PermissionName.BILLING_READ.value,
         PermissionName.SETTLEMENT_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DRIVER_MANAGE.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.TENANT_MEMBER.value: [
         PermissionName.TENANT_READ.value,
@@ -327,6 +357,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.PAYMENT_PROCESS.value,
         PermissionName.BILLING_READ.value,
         PermissionName.SETTLEMENT_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DRIVER_MANAGE.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.SELLER_ADMIN.value: [
         PermissionName.TENANT_READ.value,
@@ -372,6 +408,12 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.PAYMENT_PROCESS.value,
         PermissionName.BILLING_READ.value,
         PermissionName.SETTLEMENT_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DRIVER_MANAGE.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.STAFF.value: [
         PermissionName.TENANT_READ.value,
@@ -392,6 +434,11 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.ORDER_PROCESS.value,
         PermissionName.COMMERCIAL_READ.value,
         PermissionName.PAYMENT_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
+        PermissionName.DUTY_REASSIGN.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
     ],
     RoleName.VIEWER.value: [
         PermissionName.TENANT_READ.value,
@@ -408,6 +455,14 @@ DEFAULT_ROLE_PERMISSIONS: dict[str, list[str]] = {
         PermissionName.COMMERCIAL_READ.value,
         PermissionName.PAYMENT_READ.value,
         PermissionName.BILLING_READ.value,
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.OPERATIONS_ALERT_VIEW.value,
+    ],
+    RoleName.DRIVER.value: [
+        PermissionName.DRIVER_VIEW.value,
+        PermissionName.DUTY_VIEW.value,
+        PermissionName.DUTY_MANAGE.value,
     ],
     RoleName.CUSTOMER.value: [
         PermissionName.ORDER_READ.value,

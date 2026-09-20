@@ -34,6 +34,19 @@ from app.models.commercial import PaymentGatewayType, SellerCommercialModel, Sel
 from app.models.payment import PaymentStatus, Payment, Refund
 from app.models.billing import InvoiceStatus, SellerBillingInvoice, SettlementStatus, SellerSettlement
 from app.models.pickup import OrderPickup, PickupStatus
+from app.models.driver import (
+    ComplianceDocType,
+    ComplianceDocumentType,
+    Driver,
+    DriverAvailabilityStatus,
+    DriverCompliance,
+    DriverComplianceDocument,
+    DriverComplianceStatus,
+    DriverSellerAuthorization,
+    DriverStatus,
+    DriverVehicle,
+    VehicleType,
+)
 
 from app.models.order import (
     ALLOWED_TRANSITIONS,
@@ -102,4 +115,15 @@ __all__ = [
     'OrderPickup',
     'PickupStatus',
     'order_number_seq',
+    'Driver',
+    'DriverVehicle',
+    'DriverSellerAuthorization',
+    'DriverComplianceDocument',
+    'DriverCompliance',
+    'DriverStatus',
+    'DriverComplianceStatus',
+    'DriverAvailabilityStatus',
+    'VehicleType',
+    'ComplianceDocumentType',
+    'ComplianceDocType',
 ]

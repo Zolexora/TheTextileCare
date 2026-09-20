@@ -24,6 +24,7 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
     RoleName.STAFF.value: 'Seller staff with operational permissions',
     RoleName.VIEWER.value: 'Read-only seller viewer',
     RoleName.CUSTOMER.value: 'Marketplace retail customer with order and payment access',
+    RoleName.DRIVER.value: 'Logistics fulfillment driver managing assigned pickup and delivery duties',
 }
 
 PERMISSION_DESCRIPTIONS: dict[str, str] = {
@@ -78,6 +79,14 @@ PERMISSION_DESCRIPTIONS: dict[str, str] = {
     PermissionName.BILLING_MANAGE.value: 'Generate monthly invoices, calculate penalties, and manage invoice status',
     PermissionName.SETTLEMENT_READ.value: 'View cooling hold balances and weekly settlement disbursement status',
     PermissionName.SETTLEMENT_PROCESS.value: 'Trigger and execute weekly Monday settlement payouts',
+
+    # Phase 8 Driver & Duty Logistics Descriptions
+    PermissionName.DRIVER_VIEW.value: 'View driver profiles, vehicle details, and operational status',
+    PermissionName.DRIVER_MANAGE.value: 'Create, update, suspend, or configure drivers and compliance documents',
+    PermissionName.DUTY_VIEW.value: 'View logistics duties and assignment history',
+    PermissionName.DUTY_MANAGE.value: 'Create, assign, start, or complete logistics fulfillment duties',
+    PermissionName.DUTY_REASSIGN.value: 'Reassign logistics duties with mandatory justification reason',
+    PermissionName.OPERATIONS_ALERT_VIEW.value: 'View operational alerts for driver unavailability, timeouts, and SLA breaches',
 }
 
 

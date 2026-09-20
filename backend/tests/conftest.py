@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
@@ -24,12 +24,10 @@ from app.services.roles import RoleService
 def reset_database():
     """Reset database tables and seed defaults before each test."""
     from sqlalchemy import text
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(text("DROP SCHEMA public CASCADE"))
         conn.execute(text("CREATE SCHEMA public"))
-        conn.commit()
-    engine.dispose()
-    Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=conn)
     with SessionLocal() as db:
         RoleService(db).seed_defaults()
     yield
@@ -226,3 +224,167 @@ def create_test_settlement(
         db.commit()
         db.refresh(settlement)
         return settlement
+
+
+# ---------------------------------------------------------------------------
+# Phase 8 Driver Test Fixture Helpers
+# ---------------------------------------------------------------------------
+
+def create_test_driver(
+    tenant_id: uuid.UUID,
+    seller_id: uuid.UUID | None = None,
+    home_branch_id: uuid.UUID | None = None,
+    branch_id: uuid.UUID | None = None,
+    name: str = "Test Driver",
+    phone: str = "+15550199999",
+    status: str = "ACTIVE",
+    is_on_duty: bool = True,
+    availability_status: str = "AVAILABLE",
+    max_active_duties: int = 3,
+    current_latitude: float | Decimal | None = None,
+    current_longitude: float | Decimal | None = None,
+    created_at: datetime | None = None,
+) -> Driver:
+    from app.models.driver import Driver
+    with SessionLocal() as db:
+        user = create_test_user(f"driver_{uuid.uuid4().hex[:8]}@example.com", name=name)
+        eff_branch = home_branch_id or branch_id
+        driver = Driver(
+            user_id=user.id,
+            tenant_id=tenant_id,
+            seller_id=seller_id,
+            home_branch_id=eff_branch,
+            branch_id=eff_branch,
+            full_name=name,
+            phone_number=phone,
+            phone=phone,
+            status=status,
+            is_on_duty=is_on_duty,
+            availability_status=availability_status,
+            max_active_duties=max_active_duties,
+            current_latitude=Decimal(str(current_latitude)) if current_latitude is not None else None,
+            current_longitude=Decimal(str(current_longitude)) if current_longitude is not None else None,
+        )
+        if created_at is not None:
+            driver.created_at = created_at
+        db.add(driver)
+        db.commit()
+        db.refresh(driver)
+        return driver
+
+
+def create_test_driver_compliance(
+    driver_id: uuid.UUID,
+    doc_type: str = "DL",
+    is_verified: bool = True,
+    days_valid: int = 365,
+    valid_until: date | datetime | None = None,
+) -> DriverComplianceDocument:
+    from datetime import timedelta
+    from app.models.driver import DriverComplianceDocument
+    with SessionLocal() as db:
+        if valid_until is None:
+            v_until = datetime.now(timezone.utc) + timedelta(days=days_valid)
+        elif isinstance(valid_until, date) and not isinstance(valid_until, datetime):
+            v_until = datetime(valid_until.year, valid_until.month, valid_until.day, 23, 59, 59, tzinfo=timezone.utc)
+        else:
+            v_until = valid_until
+
+        doc = DriverComplianceDocument(
+            driver_id=driver_id,
+            document_type=doc_type,
+            document_number=f"DOC-{uuid.uuid4().hex[:8].upper()}",
+            is_verified=is_verified,
+            valid_until=v_until,
+            verified_at=datetime.now(timezone.utc) if is_verified else None,
+        )
+        db.add(doc)
+        db.commit()
+        db.refresh(doc)
+        return doc
+
+
+def create_test_driver_authorization(
+    driver_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    seller_id: uuid.UUID,
+    branch_id: uuid.UUID | None = None,
+    is_authorized: bool = True,
+) -> DriverSellerAuthorization:
+    from app.models.driver import DriverSellerAuthorization
+    with SessionLocal() as db:
+        auth = DriverSellerAuthorization(
+            driver_id=driver_id,
+            tenant_id=tenant_id,
+            seller_id=seller_id,
+            branch_id=branch_id,
+            is_authorized=is_authorized,
+        )
+        db.add(auth)
+        db.commit()
+        db.refresh(auth)
+        return auth
+
+
+def create_test_driver_vehicle(
+    driver_id: uuid.UUID,
+    make: str = "Ford",
+    model: str = "Transit",
+    plate_number: str = "TTC-101",
+    vehicle_type: str = "SCOOTER",
+    color: str = "White",
+) -> DriverVehicle:
+    from app.models.driver import DriverVehicle
+    with SessionLocal() as db:
+        veh = DriverVehicle(
+            driver_id=driver_id,
+            make=make,
+            model=model,
+            plate_number=plate_number,
+            license_plate=plate_number,
+            vehicle_type=vehicle_type,
+            color=color,
+            is_active=True,
+        )
+        db.add(veh)
+        db.commit()
+        db.refresh(veh)
+        return veh
+
+
+def create_test_seller(tenant_id: uuid.UUID, business_name: str = "Test Seller") -> Seller:
+    from app.models.seller import Seller
+    with SessionLocal() as db:
+        seller = Seller(
+            tenant_id=tenant_id,
+            business_name=business_name,
+            slug=f"seller-{uuid.uuid4().hex[:8]}",
+            status="ACTIVE",
+        )
+        db.add(seller)
+        db.commit()
+        db.refresh(seller)
+        return seller
+
+
+def create_test_branch(
+    tenant_id: uuid.UUID,
+    seller_id: uuid.UUID,
+    name: str = "Downtown Express",
+    code: str | None = None,
+) -> Branch:
+    from app.models.seller import Branch
+    with SessionLocal() as db:
+        branch = Branch(
+            tenant_id=tenant_id,
+            seller_id=seller_id,
+            name=name,
+            code=code or f"BR-{uuid.uuid4().hex[:6]}".upper(),
+            status="ACTIVE",
+        )
+        db.add(branch)
+        db.commit()
+        db.refresh(branch)
+        return branch
+
+

@@ -104,7 +104,7 @@ export async function getMarketplaceSeller(
 }
 
 export async function getMarketplaceCategories(
-  token?: string | null
+  _token?: string | null
 ): Promise<MarketplaceCategory[]> {
   // Global categories not yet supported by backend, mocking fallback
   return [

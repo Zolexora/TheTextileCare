@@ -22,3 +22,6 @@ __pycache__/
 
 # Agent workspaces
 
+# Python packaging
+*.egg-info/
+*.egg

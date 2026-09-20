@@ -1,5 +1,5 @@
 [project]
-name = "the-textile-care-backend"
+name = "ttc_backend"
 version = "0.1.0"
 description = "The Textile Care backend foundation"
 requires-python = ">=3.12"
@@ -29,6 +29,9 @@ dev = [
 [build-system]
 requires = ["setuptools>=70.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

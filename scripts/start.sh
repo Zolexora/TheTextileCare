@@ -441,7 +441,7 @@ if [ "$BACKEND_SELECTED" = true ]; then
   (
     export PYTHONUNBUFFERED=1
     cd "$REPO_ROOT/backend"
-    exec "$UVICORN_BIN" app.main:app --reload --host 0.0.0.0 --port "${BACKEND_PORT:-8000}" 2>&1 | while IFS= read -r line; do
+    exec $UVICORN_BIN app.main:app --reload --host 0.0.0.0 --port "${BACKEND_PORT:-8000}" 2>&1 | while IFS= read -r line; do
       printf "[backend] %s\n" "$line"
     done
   ) &

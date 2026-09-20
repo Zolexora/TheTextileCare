@@ -22,6 +22,9 @@ from app.api.v1.billing import router as billing_router
 from app.api.v1.payment import router as payment_router
 from app.api.v1.pickup import seller_router as pickup_seller_router
 from app.api.v1.pickup import customer_router as pickup_customer_router
+# Phase 8 Driver routers
+from app.api.v1.driver import platform_router as driver_platform_router
+from app.api.v1.driver import seller_router as driver_seller_router
 
 router = APIRouter()
 
@@ -45,3 +48,11 @@ router.include_router(billing_router, prefix='/api/v1/seller/billing')
 router.include_router(payment_router, prefix='/api/v1/seller/payments')
 router.include_router(pickup_seller_router, prefix='/api/v1/seller/pickups')
 router.include_router(pickup_customer_router, prefix='/api/v1/customer/pickups')
+# Phase 8 Driver routers
+router.include_router(driver_platform_router, prefix='/api/v1/platform/drivers')
+router.include_router(driver_seller_router, prefix='/api/v1/seller/drivers')
+
+
+# Mount seller duties
+from app.api.v1.driver import seller_duties_router
+router.include_router(seller_duties_router, prefix='/api/v1/seller/duties')

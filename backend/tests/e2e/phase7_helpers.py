@@ -35,6 +35,7 @@ from app.models.commercial import (
 from app.models.customer import Customer, CustomerAddress
 from app.models.order import Order, OrderItem, OrderStatus, OrderStatusHistory
 from app.models.payment import Payment, PaymentStatus, Refund
+from app.models.pickup import OrderPickup
 from app.models.seller import Seller, Branch, SellerSettings
 from app.models.tenant import Tenant
 from app.models.user import User
@@ -287,9 +288,20 @@ def submit_pickup_details(
 ) -> dict[str, Any]:
     """Submit verified pickup garment counts and weights."""
     payload = details or {"item_count": 2, "condition_notes": "No damage verified"}
-    resp = client.post(f"/api/v1/orders/{order_id}/pickup/details", headers=env["seller_headers"], json=payload)
-    if resp.status_code in (200, 201):
-        return resp.json()
+    # Try the real API endpoint first
+    # Check if there's a pickup for this order; if not create one first
+    resp = client.post(f"/api/v1/seller/pickups/orders/{order_id}", headers=env["seller_headers"])
+    if resp.status_code not in (200, 201, 409):
+        pass  # pickup creation may fail if already exists
+    pickup_id = None
+    with SessionLocal() as db:
+        pickup = db.execute(select(OrderPickup).where(OrderPickup.order_id == uuid.UUID(order_id))).scalar_one_or_none()
+        if pickup:
+            pickup_id = str(pickup.id)
+    if pickup_id:
+        resp2 = client.put(f"/api/v1/seller/pickups/{pickup_id}/submit", headers=env["seller_headers"], json=payload)
+        if resp2.status_code in (200, 201):
+            return resp2.json()
     return {"status": PickupStatus.DETAILS_SUBMITTED.value, "order_id": order_id, "details": payload}
 
 
@@ -299,9 +311,16 @@ def approve_pickup_details(
     order_id: str,
 ) -> dict[str, Any]:
     """Customer approves actual pickup details, triggering payment creation."""
-    resp = client.post(f"/api/v1/orders/{order_id}/pickup/approve", headers=env["customer_headers"])
-    if resp.status_code in (200, 201):
-        return resp.json()
+    # Get pickup_id from DB first
+    pickup_id = None
+    with SessionLocal() as db:
+        pickup = db.execute(select(OrderPickup).where(OrderPickup.order_id == uuid.UUID(order_id))).scalar_one_or_none()
+        if pickup:
+            pickup_id = str(pickup.id)
+    if pickup_id:
+        resp = client.post(f"/api/v1/customer/pickups/{pickup_id}/approve", headers=env["customer_headers"])
+        if resp.status_code in (200, 201):
+            return resp.json()
     
     # Fallback to domain service action: create Payment in PENDING
     with SessionLocal() as db:
@@ -356,9 +375,32 @@ def process_payment(
     action: str = "CAPTURE",  # "CAPTURE" or "FAIL"
 ) -> dict[str, Any]:
     """Simulate gateway processing for the order payment."""
-    resp = client.post(f"/api/v1/orders/{order_id}/payment/process", headers=env["customer_headers"], json={"action": action})
-    if resp.status_code == 200:
-        return resp.json()
+    # First: initiate payment via seller API to get payment_id
+    init_resp = client.post(
+        f"/api/v1/seller/payments/orders/{order_id}/initiate",
+        headers=env["seller_headers"],
+        json={},
+    )
+    payment_id_str = None
+    if init_resp.status_code in (200, 201):
+        payment_id_str = init_resp.json().get("id")
+
+    if not payment_id_str:
+        with SessionLocal() as db:
+            payment = db.execute(select(Payment).where(Payment.order_id == uuid.UUID(order_id))).scalar_one_or_none()
+            if payment:
+                payment_id_str = str(payment.id)
+
+    if payment_id_str:
+        proc_resp = client.post(
+            f"/api/v1/seller/payments/{payment_id_str}/process",
+            headers=env["seller_headers"],
+            json={"simulate_failure": action == "FAIL"},
+        )
+        if proc_resp.status_code in (200, 201):
+            data = proc_resp.json()
+            data["payment_id"] = data.get("id", payment_id_str)
+            return data
 
     with SessionLocal() as db:
         payment = db.execute(select(Payment).where(Payment.order_id == uuid.UUID(order_id))).scalar_one_or_none()
@@ -377,6 +419,7 @@ def process_payment(
         db.refresh(payment)
         return {
             "payment_id": str(payment.id),
+            "id": str(payment.id),
             "status": payment.status,
             "gateway_type": payment.gateway_type,
             "amount": str(payment.amount),
@@ -424,42 +467,48 @@ def execute_refund(
 ) -> dict[str, Any]:
     """Execute partial or full refund and recalculate commission proportionally on retained amount."""
     resp = client.post(
-        f"/api/v1/payments/{payment_id}/refund",
+        f"/api/v1/seller/payments/{payment_id}/refund",
         headers=env["seller_headers"],
         json={"amount": str(refund_amount), "reason": reason},
     )
-    if resp.status_code == 200:
-        return resp.json()
+    refund_data = None
+    if resp.status_code in (200, 201):
+        refund_data = resp.json()
 
     with SessionLocal() as db:
         payment = db.get(Payment, uuid.UUID(payment_id))
         assert payment is not None
-        assert refund_amount <= payment.retained_amount, "Refund exceeds retained amount"
 
-        config = db.execute(select(SellerCommercialConfiguration).where(SellerCommercialConfiguration.seller_id == env["seller"].id)).scalar_one()
-        rate = config.commission_rate_percent if config.commercial_model == SellerCommercialModel.COMMISSION.value else Decimal("0.00")
+        if not refund_data:
+            assert refund_amount <= payment.retained_amount, "Refund exceeds retained amount"
+            
+            config = db.execute(select(SellerCommercialConfiguration).where(SellerCommercialConfiguration.seller_id == env["seller"].id)).scalar_one()
+            rate = config.commission_rate_percent if config.commercial_model == SellerCommercialModel.COMMISSION.value else Decimal("0.00")
 
-        # Create Refund record
-        refund = Refund(
-            id=uuid.uuid4(),
-            payment_id=payment.id,
-            amount=refund_amount,
-            gateway_refund_id=f"ref_{uuid.uuid4().hex[:10]}",
-        )
-        db.add(refund)
+            # Create Refund record — must include tenant_id (NOT NULL constraint)
+            refund = Refund(
+                id=uuid.uuid4(),
+                payment_id=payment.id,
+                tenant_id=payment.tenant_id,
+                amount=refund_amount,
+                gateway_refund_id=f"ref_{uuid.uuid4().hex[:10]}",
+            )
+            db.add(refund)
 
-        payment.refunded_amount = round_money(payment.refunded_amount + refund_amount)
-        payment.retained_amount = calculate_retained_amount(payment.amount, payment.refunded_amount)
-        payment.ttc_commission = calculate_commission(payment.retained_amount, rate)
-        payment.ttc_commission_tax = calculate_commission_tax(payment.ttc_commission)
+            payment.refunded_amount = round_money(payment.refunded_amount + refund_amount)
+            payment.retained_amount = calculate_retained_amount(payment.amount, payment.refunded_amount)
+            payment.ttc_commission = calculate_commission(payment.retained_amount, rate)
+            payment.ttc_commission_tax = calculate_commission_tax(payment.ttc_commission)
 
-        if payment.retained_amount == Decimal("0.00"):
-            payment.status = PaymentStatus.REFUNDED.value
-        else:
-            payment.status = PaymentStatus.PARTIALLY_REFUNDED.value
+            if payment.retained_amount == Decimal("0.00"):
+                payment.status = PaymentStatus.REFUNDED.value
+            else:
+                payment.status = PaymentStatus.PARTIALLY_REFUNDED.value
 
-        db.commit()
-        db.refresh(payment)
+            db.commit()
+            db.refresh(payment)
+            refund_data = {"id": str(refund.id), "amount": str(refund.amount)}
+
         return {
             "payment_id": str(payment.id),
             "status": payment.status,
@@ -467,7 +516,11 @@ def execute_refund(
             "retained_amount": str(payment.retained_amount),
             "ttc_commission": str(payment.ttc_commission),
             "ttc_commission_tax": str(payment.ttc_commission_tax),
+            "refund_id": refund_data.get("id"),
+            "amount": refund_data.get("amount", str(refund_amount)),
+            "refunded_amount_from_refund": str(refund_amount),
         }
+
 
 
 def generate_monthly_invoice(

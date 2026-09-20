@@ -26,6 +26,15 @@ from app.services.payment import PaymentService
 
 router = APIRouter(tags=["payments"])
 
+def _get_seller_id(ctx: TenantContext, db: Session) -> uuid.UUID:
+    from sqlalchemy import select
+    from app.models.seller import Seller
+    seller = db.execute(select(Seller).where(Seller.tenant_id == ctx.tenant_id)).scalar_one_or_none()
+    if not seller:
+        raise ApiError(status_code=404, code="SELLER_NOT_FOUND", message="No seller found for this tenant.")
+    return seller.id
+
+
 
 @router.post("/orders/{order_id}/initiate", response_model=PaymentResponse, status_code=201)
 def initiate_payment(
@@ -44,14 +53,14 @@ def initiate_payment(
     svc = PaymentService(db)
     payment = svc.initiate_payment(
         order_id=order_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
         customer_id=order.customer_id,
     )
     return PaymentResponse.model_validate(payment)
 
 
-@router.post("/payments/{payment_id}/process", response_model=PaymentResponse)
+@router.post("/{payment_id}/process", response_model=PaymentResponse)
 def process_payment(
     payment_id: uuid.UUID,
     request: PaymentProcessRequest,
@@ -62,14 +71,14 @@ def process_payment(
     svc = PaymentService(db)
     payment = svc.process_payment(
         payment_id=payment_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
         simulate_failure=request.simulate_failure,
     )
     return PaymentResponse.model_validate(payment)
 
 
-@router.post("/payments/{payment_id}/refund", response_model=RefundResponse, status_code=201)
+@router.post("/{payment_id}/refund", response_model=RefundResponse, status_code=201)
 def create_refund(
     payment_id: uuid.UUID,
     request: RefundCreateRequest,
@@ -80,7 +89,7 @@ def create_refund(
     svc = PaymentService(db)
     refund = svc.create_refund(
         payment_id=payment_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
         amount=request.amount,
         reason=request.reason,
@@ -98,7 +107,7 @@ def get_payment_for_order(
     svc = PaymentService(db)
     payment = svc.get_payment_for_order(
         order_id=order_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
     )
     if payment is None:

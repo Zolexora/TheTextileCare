@@ -23,6 +23,15 @@ from app.services.commercial import CommercialService
 
 router = APIRouter(tags=["commercial"])
 
+def _get_seller_id(ctx: TenantContext, db: Session) -> uuid.UUID:
+    from sqlalchemy import select
+    from app.models.seller import Seller
+    seller = db.execute(select(Seller).where(Seller.tenant_id == ctx.tenant_id)).scalar_one_or_none()
+    if not seller:
+        raise ApiError(status_code=404, code="SELLER_NOT_FOUND", message="No seller found for this tenant.")
+    return seller.id
+
+
 
 @router.get("/config", response_model=CommercialConfigResponse)
 def get_commercial_config(
@@ -32,7 +41,7 @@ def get_commercial_config(
     """Return the seller's commercial configuration (creates defaults if absent)."""
     svc = CommercialService(db)
     config = svc.get_or_create_commercial_config(
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
     )
     return CommercialConfigResponse.model_validate(config)
@@ -47,7 +56,7 @@ def update_commercial_config(
     """Update the seller's commercial configuration."""
     svc = CommercialService(db)
     config = svc.update_commercial_config(
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
         update_data=request,
     )

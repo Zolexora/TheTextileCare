@@ -24,6 +24,15 @@ from app.services.pickup import PickupService
 
 # Separate routers for seller vs customer prefix
 seller_router = APIRouter(tags=["pickups"])
+
+def _get_seller_id(ctx: TenantContext, db: Session) -> uuid.UUID:
+    from sqlalchemy import select
+    from app.models.seller import Seller
+    seller = db.execute(select(Seller).where(Seller.tenant_id == ctx.tenant_id)).scalar_one_or_none()
+    if not seller:
+        raise ApiError(status_code=404, code="SELLER_NOT_FOUND", message="No seller found for this tenant.")
+    return seller.id
+
 customer_router = APIRouter(tags=["pickups"])
 
 
@@ -42,7 +51,7 @@ def create_pickup(
     svc = PickupService(db)
     pickup = svc.create_pickup(
         order_id=order_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
     )
     return PickupResponse.model_validate(pickup)
@@ -59,7 +68,7 @@ def submit_pickup_details(
     svc = PickupService(db)
     pickup = svc.submit_pickup_details(
         pickup_id=pickup_id,
-        seller_id=ctx.seller_id,
+        seller_id=_get_seller_id(ctx, db),
         tenant_id=ctx.tenant_id,
         actual_details=request.actual_details,
         driver_notes=request.driver_notes,

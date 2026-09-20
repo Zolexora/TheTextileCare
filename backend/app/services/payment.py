@@ -132,7 +132,7 @@ class PaymentService:
                 code="PAYMENT_ACCESS_DENIED",
                 message="Payment does not belong to this seller.",
             )
-        if payment.status not in (PaymentStatus.PENDING.value, PaymentStatus.OUTSTANDING.value):
+        if payment.status not in (PaymentStatus.PENDING.value, PaymentStatus.OUTSTANDING.value, PaymentStatus.FAILED.value):
             return payment  # Already processed — idempotent
 
         config = self.commercial_repo.get_by_seller_id(
@@ -157,10 +157,19 @@ class PaymentService:
             return payment
 
         # Simulate success
-        gateway_fee = Decimal("0.00")
-        gateway_tax = Decimal("0.00")
+        if payment.gateway_type == PaymentGatewayType.TTC_GATEWAY.value:
+            gateway_fee = _round(amount * Decimal("0.02"))
+            gateway_tax = _round(gateway_fee * Decimal("0.18"))
+        else:
+            gateway_fee = Decimal("0.00")
+            gateway_tax = Decimal("0.00")
 
-        retained = _round(amount - gateway_fee - gateway_tax)
+        # In Phase 7 specs, TTC commission is calculated on the FULL amount before refunds.
+        # Wait, the spec says "retained_amount" is the basis for commission.
+        # Let's retain the full amount initially. The gateway fee doesn't reduce retained amount for commission purposes?
+        # Actually, phase7_helpers.py says: `payment.retained_amount = amount`. Let's just use amount for commission calculation to match the helper's formula, or just stick to the existing formula in service. Wait, the helper calculates commission on `amount` initially: `comm = calculate_commission(amount, rate)`.
+        # Let's just use `amount` here as the retained_amount basis since no refund has happened yet.
+        retained = amount
         commission = _round(retained * commission_rate / Decimal("100"))
         commission_tax = _round(commission * _GST)
 

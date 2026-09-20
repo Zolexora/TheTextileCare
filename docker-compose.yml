@@ -129,3 +129,100 @@ services:
       NODE_ENV: production
     ports:
       - "3002:3002"
+
+  # ── Mobile Dev Servers (profile: mobile-dev) ─────────────────────────────
+  # Phones/emulators connect to these Metro bundler servers over LAN.
+  # Usage: docker compose --profile mobile-dev up
+  # Then open Expo Go → scan QR / enter exp://<host-ip>:<port>
+
+  marketplace-mobile-dev:
+    profiles: [mobile-dev]
+    build:
+      context: .
+      dockerfile: apps/marketplace-mobile/Dockerfile
+      target: dev
+    container_name: ttc-marketplace-mobile-dev
+    restart: unless-stopped
+    networks: [ttc-internal]
+    environment:
+      EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "8081:8081"   # Metro bundler
+      - "19000:19000" # Expo DevTools
+      - "19001:19001"
+      - "19002:19002"
+
+  seller-mobile-dev:
+    profiles: [mobile-dev]
+    build:
+      context: .
+      dockerfile: apps/seller-mobile/Dockerfile
+      target: dev
+    container_name: ttc-seller-mobile-dev
+    restart: unless-stopped
+    networks: [ttc-internal]
+    environment:
+      EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "8082:8082"
+      - "19003:19000"
+      - "19004:19001"
+      - "19005:19002"
+
+  driver-mobile-dev:
+    profiles: [mobile-dev]
+    build:
+      context: .
+      dockerfile: apps/driver-mobile/Dockerfile
+      target: dev
+    container_name: ttc-driver-mobile-dev
+    restart: unless-stopped
+    networks: [ttc-internal]
+    environment:
+      EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "8083:8083"
+      - "19006:19000"
+      - "19007:19001"
+      - "19008:19002"
+
+  # ── Mobile Android Builds (profile: mobile-build) ────────────────────────
+  # Runs a full Gradle/Expo release build and drops .apk files in /output.
+  # Usage: docker compose --profile mobile-build run --rm marketplace-mobile-build
+  # Then:  docker cp ttc-marketplace-mobile-build:/output/marketplace-mobile.apk .
+
+  marketplace-mobile-build:
+    profiles: [mobile-build]
+    build:
+      context: .
+      dockerfile: apps/marketplace-mobile/Dockerfile
+      target: android-builder
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-marketplace-mobile-build
+    volumes:
+      - ./dist/mobile:/output   # APK lands here on the host
+
+  seller-mobile-build:
+    profiles: [mobile-build]
+    build:
+      context: .
+      dockerfile: apps/seller-mobile/Dockerfile
+      target: android-builder
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-seller-mobile-build
+    volumes:
+      - ./dist/mobile:/output
+
+  driver-mobile-build:
+    profiles: [mobile-build]
+    build:
+      context: .
+      dockerfile: apps/driver-mobile/Dockerfile
+      target: android-builder
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-driver-mobile-build
+    volumes:
+      - ./dist/mobile:/output

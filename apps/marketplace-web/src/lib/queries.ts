@@ -174,10 +174,9 @@ export function useSeller(id: string) {
 // ---------------------------------------------------------------------------
 
 export function useCategories() {
-  const token = useToken();
   return useQuery({
     queryKey: qk.categories,
-    queryFn: () => api.getMarketplaceCategories(token),
+    queryFn: () => api.getMarketplaceCategories(),
     staleTime: 10 * 60_000,
   });
 }

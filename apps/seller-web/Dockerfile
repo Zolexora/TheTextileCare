@@ -25,12 +25,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
-COPY --from=builder /app/apps/seller-web/public               ./public
+COPY --from=builder /app/apps/seller-web/public               ./apps/seller-web/public
 COPY --from=builder --chown=nextjs:nodejs \
      /app/apps/seller-web/.next/standalone                    ./
 COPY --from=builder --chown=nextjs:nodejs \
-     /app/apps/seller-web/.next/static                        ./.next/static
+     /app/apps/seller-web/.next/static                        ./apps/seller-web/.next/static
 USER nextjs
 EXPOSE 3002
 ENV PORT=3002 HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+CMD ["node", "apps/seller-web/server.js"]

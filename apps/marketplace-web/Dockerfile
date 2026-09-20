@@ -30,14 +30,14 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/marketplace-web/public          ./public
+COPY --from=builder /app/apps/marketplace-web/public          ./apps/marketplace-web/public
 COPY --from=builder --chown=nextjs:nodejs \
      /app/apps/marketplace-web/.next/standalone               ./
 COPY --from=builder --chown=nextjs:nodejs \
-     /app/apps/marketplace-web/.next/static                   ./.next/static
+     /app/apps/marketplace-web/.next/static                   ./apps/marketplace-web/.next/static
 
 USER nextjs
 EXPOSE 3001
 ENV PORT=3001 HOSTNAME=0.0.0.0
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/marketplace-web/server.js"]

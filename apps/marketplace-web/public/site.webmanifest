@@ -1,19 +1,27 @@
 {
   "name": "The Textile Care",
   "short_name": "TTC",
+  "description": "Professional laundry and dry cleaning marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#062b5f",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#062b5f",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  "screenshots": [],
+  "categories": ["shopping", "lifestyle"],
+  "lang": "en-IN"
 }

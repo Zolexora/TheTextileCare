@@ -10,6 +10,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@ttc/*": [
+        "../../packages/*/src/index.ts"
       ]
     },
     "incremental": true

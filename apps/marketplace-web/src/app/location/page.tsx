@@ -208,7 +208,7 @@ export default function LocationPage() {
       <Card>
         <CardContent className="space-y-6 p-6">
           {/* GPS */}
-          {'geolocation' in navigator && (
+          {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
             <>
               <GpsButton onLocation={handleGps} />
               <div className="relative flex items-center">

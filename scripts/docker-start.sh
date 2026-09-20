@@ -198,6 +198,55 @@ if [ ! -f "$REPO_ROOT/.env" ]; then
   warn "Review and edit .env before running in production."
 fi
 
+# ── Port conflict check ────────────────────────────────────────────────────────
+# Map port → service name for every TTC port
+declare -A PORT_SVC=(
+  [3000]="admin-web"
+  [3001]="marketplace-web"
+  [3002]="seller-web"
+  [8000]="backend"
+  [5432]="postgres"
+  [6379]="redis"
+  [8081]="marketplace-mobile-dev"
+  [8082]="seller-mobile-dev"
+  [8083]="driver-mobile-dev"
+)
+
+BLOCKED_PORTS=()
+BLOCKED_PIDS=()
+
+for port in "${!PORT_SVC[@]}"; do
+  pid=$(lsof -ti tcp:"$port" 2>/dev/null | head -1 || true)
+  if [ -n "$pid" ]; then
+    # Skip if it's already a Docker process (i.e. the container itself)
+    pname=$(ps -p "$pid" -o comm= 2>/dev/null || echo "unknown")
+    if [[ "$pname" != "docker"* ]]; then
+      BLOCKED_PORTS+=("$port")
+      BLOCKED_PIDS+=("$pid")
+      warn "Port $port (${PORT_SVC[$port]}) is in use by PID $pid ($pname)"
+    fi
+  fi
+done
+
+if [ ${#BLOCKED_PORTS[@]} -gt 0 ]; then
+  echo ""
+  if [ -t 0 ]; then
+    printf "${YELLOW}Kill the blocking processes and continue? [y/N]: ${RESET}"
+    read -r answer
+  else
+    answer="n"
+  fi
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    for pid in "${BLOCKED_PIDS[@]}"; do
+      kill -9 "$pid" 2>/dev/null && info "Killed PID $pid" || warn "Could not kill PID $pid (may need sudo)"
+    done
+    sleep 1
+  else
+    echo ""
+    error "Ports are busy. Free them first or use 'docker-start.sh --down' to stop existing TTC containers."
+  fi
+fi
+
 # ── Resolve services ────────────────────────────────────────────────────────────
 if [ ${#CLI_ARGS[@]} -gt 0 ]; then
   for arg in "${CLI_ARGS[@]}"; do

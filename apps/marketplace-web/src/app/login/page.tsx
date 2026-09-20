@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Link href="/" aria-label="Home">
+          <Link href="/" aria-label="Home" className="inline-flex shrink-0 items-center justify-center">
             <Logo theme="light" size="sm" className="mx-auto dark:hidden" />
             <Logo theme="dark" size="sm" className="mx-auto hidden dark:block" />
           </Link>

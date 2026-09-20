@@ -9,7 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 FROM base AS builder
 WORKDIR /app
 COPY pyproject.toml ./
-RUN pip install --upgrade pip && pip install -e .
+COPY app ./app
+RUN pip install --upgrade pip && pip install .
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM base AS runner

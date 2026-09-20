@@ -436,7 +436,10 @@ class TestOrderReselectionAndRBAC:
     """Tests for Order reselection linkages and RBAC permissions."""
 
     def test_order_reselection_model_and_schema(self):
-        tenant_id = uuid.uuid4()
+        # Each seller needs its own tenant (unique constraint on sellers.tenant_id)
+        tenant_a_id = uuid.uuid4()
+        tenant_b_id = uuid.uuid4()
+        tenant_id = tenant_a_id  # primary tenant for customer/order context
         seller_a_id = uuid.uuid4()
         seller_b_id = uuid.uuid4()
         branch_a_id = uuid.uuid4()
@@ -446,11 +449,12 @@ class TestOrderReselectionAndRBAC:
         order_2_id = uuid.uuid4()
 
         with SessionLocal() as db:
-            tenant = Tenant(id=tenant_id, name="Reselect Tenant", slug="reselect-tenant")
-            seller_a = Seller(id=seller_a_id, tenant_id=tenant_id, business_name="Seller A", slug="seller-a")
-            seller_b = Seller(id=seller_b_id, tenant_id=tenant_id, business_name="Seller B", slug="seller-b")
-            branch_a = Branch(id=branch_a_id, tenant_id=tenant_id, seller_id=seller_a_id, name="Branch A", code="BA-01")
-            branch_b = Branch(id=branch_b_id, tenant_id=tenant_id, seller_id=seller_b_id, name="Branch B", code="BB-01")
+            tenant_a = Tenant(id=tenant_a_id, name="Reselect Tenant A", slug="reselect-tenant-a")
+            tenant_b = Tenant(id=tenant_b_id, name="Reselect Tenant B", slug="reselect-tenant-b")
+            seller_a = Seller(id=seller_a_id, tenant_id=tenant_a_id, business_name="Seller A", slug="seller-a")
+            seller_b = Seller(id=seller_b_id, tenant_id=tenant_b_id, business_name="Seller B", slug="seller-b")
+            branch_a = Branch(id=branch_a_id, tenant_id=tenant_a_id, seller_id=seller_a_id, name="Branch A", code="BA-01")
+            branch_b = Branch(id=branch_b_id, tenant_id=tenant_b_id, seller_id=seller_b_id, name="Branch B", code="BB-01")
             user = User(id=uuid.uuid4(), auth_user_id=f"auth-{uuid.uuid4().hex[:6]}", email=f"reselect-{uuid.uuid4().hex[:6]}@cust.com")
             db.add(user)
             db.flush()
@@ -488,7 +492,7 @@ class TestOrderReselectionAndRBAC:
                 catalog_snapshot={},
                 customer_snapshot={},
             )
-            db.add_all([tenant, seller_a, seller_b, branch_a, branch_b, customer, order_1, order_2])
+            db.add_all([tenant_a, tenant_b, seller_a, seller_b, branch_a, branch_b, customer, order_1, order_2])
             db.commit()
             db.refresh(order_2)
 

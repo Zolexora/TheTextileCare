@@ -38,7 +38,6 @@ declare -A SVC_PROFILE=(
   [marketplace-web]="default"
   [seller-web]="default"
   [backend]="default"
-  [postgres]="default"
   [redis]="default"
   [marketplace-mobile-dev]="mobile-dev"
   [seller-mobile-dev]="mobile-dev"
@@ -53,8 +52,8 @@ declare -A SVC_PROFILE=(
 
 # Groups
 ALL_WEB=(admin-web marketplace-web seller-web)
-ALL_INFRA=(postgres redis)
-ALL_DEFAULT=(admin-web marketplace-web seller-web backend postgres redis)
+ALL_INFRA=(redis)
+ALL_DEFAULT=(admin-web marketplace-web seller-web backend redis)
 ALL_MOBILE_DEV=(marketplace-mobile-dev seller-mobile-dev driver-mobile-dev)
 ALL_MOBILE_APK=(marketplace-mobile-apk seller-mobile-apk driver-mobile-apk)
 ALL_MOBILE_AAB=(marketplace-mobile-aab seller-mobile-aab driver-mobile-aab)
@@ -71,8 +70,7 @@ show_menu() {
   echo "  2)  marketplace-web        Customer marketplace    → :3001"
   echo "  3)  seller-web             Seller portal           → :3002"
   echo "  4)  backend                FastAPI backend         → :8000"
-  echo "  5)  postgres               PostgreSQL              → :5432"
-  echo "  6)  redis                  Redis cache             → :6379"
+  echo "  5)  redis                  Redis cache             → :6379"
   echo ""
   bold "Mobile Dev Servers (Expo Metro — connect via Expo Go):"
   echo "  7)  marketplace-mobile-dev  Customer app Metro     → :8081"
@@ -110,8 +108,7 @@ resolve_token() {
     2|marketplace|marketplace-web)    RESOLVED_SVCS+=(marketplace-web) ;;
     3|seller|seller-web)              RESOLVED_SVCS+=(seller-web) ;;
     4|backend|api)                    RESOLVED_SVCS+=(backend) ;;
-    5|postgres|db)                    RESOLVED_SVCS+=(postgres) ;;
-    6|redis|cache)                    RESOLVED_SVCS+=(redis) ;;
+    5|redis|cache)                    RESOLVED_SVCS+=(redis) ;;
     7|marketplace-mobile-dev)         RESOLVED_SVCS+=(marketplace-mobile-dev) ;;
     8|seller-mobile-dev)              RESOLVED_SVCS+=(seller-mobile-dev) ;;
     9|driver-mobile-dev)              RESOLVED_SVCS+=(driver-mobile-dev) ;;
@@ -205,7 +202,6 @@ declare -A PORT_SVC=(
   [3001]="marketplace-web"
   [3002]="seller-web"
   [8000]="backend"
-  [5432]="postgres"
   [6379]="redis"
   [8081]="marketplace-mobile-dev"
   [8082]="seller-mobile-dev"

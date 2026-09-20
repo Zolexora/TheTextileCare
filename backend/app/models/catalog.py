@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Uuid, func, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
+import sqlalchemy
 
 if TYPE_CHECKING:
     from app.models.tenant import Tenant
@@ -154,3 +155,24 @@ class ServiceBranchAvailability(Base):
 
     service: Mapped[Service] = relationship('Service', back_populates='branch_availability')
     branch: Mapped[Branch] = relationship('Branch')
+
+
+class ServiceConfigurationVersion(Base):
+    __tablename__ = 'service_configuration_versions'
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False)
+    service_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    configuration_snapshot: Mapped[dict] = mapped_column(sqlalchemy.JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+class PricePolicyVersion(Base):
+    __tablename__ = 'price_policy_versions'
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False)
+    service_id: Mapped[uuid.UUID] = mapped_column(ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    recalculation_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    price_change_policy: Mapped[str] = mapped_column(String(50), nullable=False, default='STRICT')
+    price_rejection_policy: Mapped[str] = mapped_column(String(50), nullable=False, default='CANCEL') 
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

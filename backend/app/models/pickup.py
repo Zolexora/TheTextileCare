@@ -28,7 +28,9 @@ class PickupStatus(str, enum.Enum):
     DETAILS_SUBMITTED = "DETAILS_SUBMITTED"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+    PRICE_DISPUTE = "PRICE_DISPUTE"
     COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class OrderPickup(Base):

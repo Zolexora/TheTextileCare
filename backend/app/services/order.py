@@ -25,7 +25,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.exceptions.base import ApiError
-from app.models.catalog import Catalog, Service, ServiceAddon, ServiceItem
+from app.models.catalog import Catalog, Service, ServiceAddon, ServiceItem, ServiceConfigurationVersion, PricePolicyVersion
 from app.models.customer import Customer, CustomerAddress, CustomerSeller
 from app.models.order import (
     ALLOWED_TRANSITIONS,
@@ -203,7 +203,12 @@ class OrderService:
                 surcharge_amount=_round(price_item.surcharges) if price_item else Decimal("0.00"),
                 tax_amount=_round(price_item.tax) if price_item else Decimal("0.00"),
                 total_amount=_round(price_item.total) if price_item else Decimal("0.00"),
-                pricing_snapshot=_to_json_safe(price_item.model_dump()) if price_item else {},
+                
+                service_configuration_version_id=catalog_item_data.get("service_config_version_id"),
+                price_policy_version_id=catalog_item_data.get("price_policy_version_id"),
+                applicable_rate=_round(price_item.unit_price) if price_item else Decimal("0.00"),
+                price_policy_snapshot=catalog_item_data.get("price_policy_snapshot", {}),
+pricing_snapshot=_to_json_safe(price_item.model_dump()) if price_item else {},
             )
             self.repo.create_item(order_item)
 
@@ -634,13 +639,46 @@ class OrderService:
                     )
                 addons_by_id[str(addon_req.service_addon_id)] = addon
 
+
+            # Fetch active policy and configuration version
+            policy_version = (
+                self.db.query(PricePolicyVersion)
+                .filter(
+                    PricePolicyVersion.service_id == svc.id,
+                    PricePolicyVersion.tenant_id == catalog.tenant_id,
+                )
+                .order_by(PricePolicyVersion.version.desc())
+                .first()
+            )
+            config_version = (
+                self.db.query(ServiceConfigurationVersion)
+                .filter(
+                    ServiceConfigurationVersion.service_id == svc.id,
+                    ServiceConfigurationVersion.tenant_id == catalog.tenant_id,
+                )
+                .order_by(ServiceConfigurationVersion.version.desc())
+                .first()
+            )
+            
+            price_policy_snapshot = {}
+            if policy_version:
+                price_policy_snapshot = {
+                    "version": policy_version.version,
+                    "recalculation_enabled": policy_version.recalculation_enabled,
+                    "price_change_policy": policy_version.price_change_policy,
+                    "price_rejection_policy": policy_version.price_rejection_policy
+                }
+
             result.append({
                 "service_id": str(svc.id),
                 "service_name": svc.name,
                 "service_item_name": service_item_name,
                 "unit_type": item_req.unit_type,
                 "addons_by_id": addons_by_id,
-            })
+                "service_config_version_id": config_version.id if config_version else None,
+                "price_policy_version_id": policy_version.id if policy_version else None,
+                "price_policy_snapshot": price_policy_snapshot,
+})
 
         return result
 

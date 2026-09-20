@@ -28,6 +28,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+import sqlalchemy
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
@@ -60,7 +61,7 @@ ALLOWED_TRANSITIONS: dict[OrderStatus, list[OrderStatus]] = {
     OrderStatus.DRAFT: [OrderStatus.PENDING, OrderStatus.CANCELLED],
     OrderStatus.PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
     OrderStatus.CONFIRMED: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-    OrderStatus.IN_PROGRESS: [OrderStatus.COMPLETED],
+    OrderStatus.IN_PROGRESS: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
     OrderStatus.COMPLETED: [],
     OrderStatus.CANCELLED: [],
 }
@@ -151,6 +152,8 @@ class Order(Base):
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    price_locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     reselected_from_order_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -223,6 +226,11 @@ class OrderItem(Base):
     service_name_snapshot: Mapped[str] = mapped_column(String(255), nullable=False)
     service_item_name_snapshot: Mapped[str | None] = mapped_column(String(255), nullable=True)
     unit_type: Mapped[str] = mapped_column(String(50), nullable=False, default="ITEM")
+
+    service_configuration_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('service_configuration_versions.id', ondelete='SET NULL'), nullable=True)
+    price_policy_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('price_policy_versions.id', ondelete='SET NULL'), nullable=True)
+    applicable_rate: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    price_policy_snapshot: Mapped[dict] = mapped_column(sqlalchemy.JSON, nullable=True)
 
     # Quantity and pricing — from authoritative PricingService result.
     quantity: Mapped[Decimal] = mapped_column(Numeric(10, 3), nullable=False)

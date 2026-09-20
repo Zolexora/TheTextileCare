@@ -2,9 +2,9 @@ FROM node:20-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/seller-mobile/package.json   ./apps/seller-mobile/
-COPY packages/api-client/package.json  ./packages/api-client/
-COPY packages/config/package.json      ./packages/config/
+COPY apps/seller-mobile/package.json  ./apps/seller-mobile/
+COPY packages/api-client/package.json ./packages/api-client/
+COPY packages/config/package.json     ./packages/config/
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS dev
@@ -16,8 +16,9 @@ EXPOSE 8082 19000 19001 19002
 WORKDIR /app/apps/seller-mobile
 CMD ["pnpm", "start", "--", "--host", "lan", "--port", "8082"]
 
-FROM reactnativecommunity/react-native-android:latest AS android-builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM reactnativecommunity/react-native-android:latest AS android-base
+RUN corepack enable && corepack prepare pnpm@latest --activate && \
+    npm install -g eas-cli@latest
 WORKDIR /app
 COPY --from=deps /app/node_modules             ./node_modules
 COPY --from=deps /app/apps/seller-mobile/node_modules \
@@ -27,10 +28,19 @@ ARG EXPO_PUBLIC_API_BASE_URL=https://api.thetextilecare.com
 ENV EXPO_PUBLIC_API_BASE_URL=$EXPO_PUBLIC_API_BASE_URL \
     GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
 WORKDIR /app/apps/seller-mobile
-RUN npm install -g eas-cli@latest && \
-    npx expo prebuild --platform android --clean && \
-    cd android && ./gradlew assembleRelease --no-daemon
+RUN npx expo prebuild --platform android --clean
+RUN cd android && ./gradlew --version
+
+FROM android-base AS android-apk
+RUN cd android && ./gradlew assembleRelease --no-daemon
 RUN mkdir -p /output && \
-    find /app/apps/seller-mobile/android/app/build/outputs/apk/release \
-         -name "*.apk" -exec cp {} /output/seller-mobile.apk \;
-CMD ["echo", "Build complete. Copy /output/seller-mobile.apk"]
+    find android/app/build/outputs/apk/release -name "*.apk" \
+         -exec cp {} /output/seller-mobile-release.apk \;
+CMD ["echo", "APK ready at /output/seller-mobile-release.apk"]
+
+FROM android-base AS android-aab
+RUN cd android && ./gradlew bundleRelease --no-daemon
+RUN mkdir -p /output && \
+    find android/app/build/outputs/bundle/release -name "*.aab" \
+         -exec cp {} /output/seller-mobile-release.aab \;
+CMD ["echo", "AAB ready at /output/seller-mobile-release.aab"]

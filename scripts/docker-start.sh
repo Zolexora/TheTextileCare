@@ -43,9 +43,12 @@ declare -A SVC_PROFILE=(
   [marketplace-mobile-dev]="mobile-dev"
   [seller-mobile-dev]="mobile-dev"
   [driver-mobile-dev]="mobile-dev"
-  [marketplace-mobile-build]="mobile-build"
-  [seller-mobile-build]="mobile-build"
-  [driver-mobile-build]="mobile-build"
+  [marketplace-mobile-apk]="mobile-build-apk"
+  [seller-mobile-apk]="mobile-build-apk"
+  [driver-mobile-apk]="mobile-build-apk"
+  [marketplace-mobile-aab]="mobile-build-aab"
+  [seller-mobile-aab]="mobile-build-aab"
+  [driver-mobile-aab]="mobile-build-aab"
 )
 
 # Groups
@@ -53,7 +56,8 @@ ALL_WEB=(admin-web marketplace-web seller-web)
 ALL_INFRA=(postgres redis)
 ALL_DEFAULT=(admin-web marketplace-web seller-web backend postgres redis)
 ALL_MOBILE_DEV=(marketplace-mobile-dev seller-mobile-dev driver-mobile-dev)
-ALL_MOBILE_BUILD=(marketplace-mobile-build seller-mobile-build driver-mobile-build)
+ALL_MOBILE_APK=(marketplace-mobile-apk seller-mobile-apk driver-mobile-apk)
+ALL_MOBILE_AAB=(marketplace-mobile-aab seller-mobile-aab driver-mobile-aab)
 
 # ── Menu ───────────────────────────────────────────────────────────────────────
 show_menu() {
@@ -75,16 +79,22 @@ show_menu() {
   echo "  8)  seller-mobile-dev       Seller app Metro       → :8082"
   echo "  9)  driver-mobile-dev       Driver app Metro       → :8083"
   echo ""
-  bold "Mobile Android Builds (outputs .apk to ./dist/mobile/):"
-  echo " 10)  marketplace-mobile-build"
-  echo " 11)  seller-mobile-build"
-  echo " 12)  driver-mobile-build"
+  bold "Mobile Android APK Builds (outputs .apk for testing):"
+  echo " 10)  marketplace-mobile-apk"
+  echo " 11)  seller-mobile-apk"
+  echo " 12)  driver-mobile-apk"
+  echo ""
+  bold "Mobile Android AAB Builds (outputs .aab for Play Store):"
+  echo " 13)  marketplace-mobile-aab"
+  echo " 14)  seller-mobile-aab"
+  echo " 15)  driver-mobile-aab"
   echo ""
   bold "Groups:"
-  echo " 13)  all-web         Web apps + backend + infra  (1-6)"
-  echo " 14)  mobile-dev      All mobile dev servers      (7-9)"
-  echo " 15)  mobile-build    All mobile APK builds       (10-12)"
-  echo " 16)  all             Everything                  (1-12)"
+  echo " 16)  all-web         Web apps + backend + infra"
+  echo " 17)  mobile-dev      All mobile dev servers"
+  echo " 18)  mobile-apk      All mobile APK builds"
+  echo " 19)  mobile-aab      All mobile AAB builds"
+  echo " 20)  all             Everything (web + dev servers)"
   echo ""
   echo "  Enter one or more numbers/names: e.g. '1 4' or 'all mobile-dev'"
   echo ""
@@ -105,14 +115,18 @@ resolve_token() {
     7|marketplace-mobile-dev)         RESOLVED_SVCS+=(marketplace-mobile-dev) ;;
     8|seller-mobile-dev)              RESOLVED_SVCS+=(seller-mobile-dev) ;;
     9|driver-mobile-dev)              RESOLVED_SVCS+=(driver-mobile-dev) ;;
-    10|marketplace-mobile-build)      RESOLVED_SVCS+=(marketplace-mobile-build) ;;
-    11|seller-mobile-build)           RESOLVED_SVCS+=(seller-mobile-build) ;;
-    12|driver-mobile-build)           RESOLVED_SVCS+=(driver-mobile-build) ;;
-    13|web|all-web)                   RESOLVED_SVCS+=("${ALL_DEFAULT[@]}") ;;
-    14|mobile-dev|all-mobile-dev)     RESOLVED_SVCS+=("${ALL_MOBILE_DEV[@]}") ;;
-    15|mobile-build|all-mobile-build) RESOLVED_SVCS+=("${ALL_MOBILE_BUILD[@]}") ;;
-    16|all)
-      RESOLVED_SVCS+=("${ALL_DEFAULT[@]}" "${ALL_MOBILE_DEV[@]}" "${ALL_MOBILE_BUILD[@]}")
+    10|marketplace-mobile-apk)        RESOLVED_SVCS+=(marketplace-mobile-apk) ;;
+    11|seller-mobile-apk)             RESOLVED_SVCS+=(seller-mobile-apk) ;;
+    12|driver-mobile-apk)             RESOLVED_SVCS+=(driver-mobile-apk) ;;
+    13|marketplace-mobile-aab)        RESOLVED_SVCS+=(marketplace-mobile-aab) ;;
+    14|seller-mobile-aab)             RESOLVED_SVCS+=(seller-mobile-aab) ;;
+    15|driver-mobile-aab)             RESOLVED_SVCS+=(driver-mobile-aab) ;;
+    16|web|all-web)                   RESOLVED_SVCS+=("${ALL_DEFAULT[@]}") ;;
+    17|mobile-dev|all-mobile-dev)     RESOLVED_SVCS+=("${ALL_MOBILE_DEV[@]}") ;;
+    18|mobile-apk|all-mobile-apk)     RESOLVED_SVCS+=("${ALL_MOBILE_APK[@]}") ;;
+    19|mobile-aab|all-mobile-aab)     RESOLVED_SVCS+=("${ALL_MOBILE_AAB[@]}") ;;
+    20|all)
+      RESOLVED_SVCS+=("${ALL_DEFAULT[@]}" "${ALL_MOBILE_DEV[@]}")
       ;;
     *)
       error "Unknown service or group: '$t'\nRun with --help to see available options."
@@ -210,26 +224,29 @@ dedupe
 # ── Collect required profiles ──────────────────────────────────────────────────
 PROFILES=()
 NEEDS_MOBILE_DEV=false
-NEEDS_MOBILE_BUILD=false
+NEEDS_MOBILE_APK=false
+NEEDS_MOBILE_AAB=false
 
 for svc in "${RESOLVED_SVCS[@]}"; do
   p="${SVC_PROFILE[$svc]:-default}"
   case "$p" in
-    mobile-dev)   NEEDS_MOBILE_DEV=true ;;
-    mobile-build) NEEDS_MOBILE_BUILD=true ;;
+    mobile-dev)       NEEDS_MOBILE_DEV=true ;;
+    mobile-build-apk) NEEDS_MOBILE_APK=true ;;
+    mobile-build-aab) NEEDS_MOBILE_AAB=true ;;
   esac
 done
 
 PROFILE_FLAGS=()
-[ "$NEEDS_MOBILE_DEV"   = true ] && PROFILE_FLAGS+=(--profile mobile-dev)
-[ "$NEEDS_MOBILE_BUILD" = true ] && PROFILE_FLAGS+=(--profile mobile-build)
+[ "$NEEDS_MOBILE_DEV" = true ] && PROFILE_FLAGS+=(--profile mobile-dev)
+[ "$NEEDS_MOBILE_APK" = true ] && PROFILE_FLAGS+=(--profile mobile-build-apk)
+[ "$NEEDS_MOBILE_AAB" = true ] && PROFILE_FLAGS+=(--profile mobile-build-aab)
 
-# ── Detect build-only services (mobile-build) ──────────────────────────────────
+# ── Detect build-only services (mobile APK/AAB) ────────────────────────────────
 BUILD_ONLY_SVCS=()
 RUN_SVCS=()
 for svc in "${RESOLVED_SVCS[@]}"; do
   p="${SVC_PROFILE[$svc]:-default}"
-  if [ "$p" = "mobile-build" ]; then
+  if [[ "$p" == mobile-build-* ]]; then
     BUILD_ONLY_SVCS+=("$svc")
   else
     RUN_SVCS+=("$svc")

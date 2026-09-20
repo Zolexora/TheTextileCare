@@ -186,43 +186,82 @@ services:
       - "19007:19001"
       - "19008:19002"
 
-  # ── Mobile Android Builds (profile: mobile-build) ────────────────────────
+  # ── Mobile Android APK Builds (profile: mobile-build-apk) ─────────────────
   # Runs a full Gradle/Expo release build and drops .apk files in /output.
-  # Usage: docker compose --profile mobile-build run --rm marketplace-mobile-build
-  # Then:  docker cp ttc-marketplace-mobile-build:/output/marketplace-mobile.apk .
+  # Usage: docker compose --profile mobile-build-apk run --rm marketplace-mobile-apk
 
-  marketplace-mobile-build:
-    profiles: [mobile-build]
+  marketplace-mobile-apk:
+    profiles: [mobile-build-apk]
     build:
       context: .
       dockerfile: apps/marketplace-mobile/Dockerfile
-      target: android-builder
+      target: android-apk
       args:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
-    container_name: ttc-marketplace-mobile-build
+    container_name: ttc-marketplace-mobile-apk
     volumes:
       - ./dist/mobile:/output   # APK lands here on the host
 
-  seller-mobile-build:
-    profiles: [mobile-build]
+  seller-mobile-apk:
+    profiles: [mobile-build-apk]
     build:
       context: .
       dockerfile: apps/seller-mobile/Dockerfile
-      target: android-builder
+      target: android-apk
       args:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
-    container_name: ttc-seller-mobile-build
+    container_name: ttc-seller-mobile-apk
     volumes:
       - ./dist/mobile:/output
 
-  driver-mobile-build:
-    profiles: [mobile-build]
+  driver-mobile-apk:
+    profiles: [mobile-build-apk]
     build:
       context: .
       dockerfile: apps/driver-mobile/Dockerfile
-      target: android-builder
+      target: android-apk
       args:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
-    container_name: ttc-driver-mobile-build
+    container_name: ttc-driver-mobile-apk
+    volumes:
+      - ./dist/mobile:/output
+
+  # ── Mobile Android AAB Builds (profile: mobile-build-aab) ─────────────────
+  # Runs a full Gradle/Expo release build and drops .aab files in /output.
+  # Usage: docker compose --profile mobile-build-aab run --rm marketplace-mobile-aab
+
+  marketplace-mobile-aab:
+    profiles: [mobile-build-aab]
+    build:
+      context: .
+      dockerfile: apps/marketplace-mobile/Dockerfile
+      target: android-aab
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-marketplace-mobile-aab
+    volumes:
+      - ./dist/mobile:/output   # AAB lands here on the host
+
+  seller-mobile-aab:
+    profiles: [mobile-build-aab]
+    build:
+      context: .
+      dockerfile: apps/seller-mobile/Dockerfile
+      target: android-aab
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-seller-mobile-aab
+    volumes:
+      - ./dist/mobile:/output
+
+  driver-mobile-aab:
+    profiles: [mobile-build-aab]
+    build:
+      context: .
+      dockerfile: apps/driver-mobile/Dockerfile
+      target: android-aab
+      args:
+        EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-https://api.thetextilecare.com}
+    container_name: ttc-driver-mobile-aab
     volumes:
       - ./dist/mobile:/output
